@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OneJev</title>
+<meta name="description" content="OneJev is a multimodal System One decision model. Screenshots, photos and video go in with typed questions; calibrated probabilities come out in one forward pass, behind TypeSafe's System One API.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%23fefefe'/%3E%3Cpath fill='%231e1e1e' d='M0 2h16v1H0zM0 3h1v1H0zM15 3h1v1H15zM0 4h1v1H0zM15 4h1v1H15zM0 5h1v1H0zM15 5h1v1H15zM0 6h1v1H0zM15 6h1v1H15zM0 7h1v1H0zM15 7h1v1H15zM0 8h1v1H0zM15 8h1v1H15zM0 9h1v1H0zM15 9h1v1H15zM0 10h1v1H0zM15 10h1v1H15zM0 11h1v1H0zM15 11h1v1H15zM0 12h16v1H0zM6 13h4v1H6z'/%3E%3Cpath fill='%23d45bb6' d='M5 4h6v1H5zM3 5h2v1H3zM11 5h2v1H11zM2 6h1v1H2zM13 6h1v1H13zM1 7h1v1H1zM14 7h1v1H14zM2 8h1v1H2zM13 8h1v1H13zM3 9h2v1H3zM11 9h2v1H11zM5 10h6v1H5z'/%3E%3Cpath fill='%23f386a1' d='M6 6h4v1H6zM5 7h6v1H5zM6 8h4v1H6z'/%3E%3C/svg%3E">
+<link rel="preload" href="fonts/DepartureMono-Regular.otf" as="font" type="font/otf" crossorigin>
+<link rel="preload" href="fonts/PressStart2P-Regular.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="stylesheet" href="omni.css">
+</head>
+<body>
+
+<header class="top">
+  <nav><a class="brand" href="#top"><span id="nav-eye"></span>OneJev</a></nav>
+  <nav class="mid"><a href="#live">Live</a><a href="#demos">Demos</a><a href="#results">Results</a><a href="#start">Quick Start</a><a href="#how">How It Works</a><a href="video.html">Video</a></nav>
+  <nav class="end"><a href="https://github.com/OmniJev/OneJev">GitHub</a><a class="dark" href="https://huggingface.co/OmniJev">Weights</a></nav>
+</header>
+
+<section class="band-paper" id="top">
+  <div class="wrap banner">
+    <div class="banner-in">
+      <div class="logo-eye" id="logo-eye" aria-hidden="true"></div>
+      <div>
+        <h1>OneJev</h1>
+        <p class="sub" id="banner-sub">a Multimodal System One Decision Model</p>
+        <p class="meta"><span>screens, photos, video, text</span> <b>&gt;</b> <span>calibrated answers</span><br><span>0.8B / 4B / 9B / 27B</span> &nbsp; <span>one forward pass</span> &nbsp; <span>Apache-2.0</span></p>
+      </div>
+    </div>
+  </div>
+  <div class="wrap hero">
+    <div class="win">
+      <div class="win-t"><span class="t">readme.txt</span></div>
+      <div class="win-b">
+        <p class="hi">Show it a screen. Ask it anything typed.</p>
+        <p style="margin-top:10px">Send a state with screenshots, photos or video and a set of typed questions. Get one calibrated probability per option back, in one forward pass.</p>
+        <div class="btns">
+          <a class="btn" href="#start">Run it locally</a>
+          <a class="btn light" href="#live">Watch it decide</a>
+        </div>
+      </div>
+    </div>
+    <div class="win">
+      <div class="win-t"><span class="t">news.txt</span></div>
+      <div class="win-b news-list" id="news"><p>Loading results.json <span class="cursor"></span></p></div>
+    </div>
+  </div>
+</section>
+
+<section class="band-grey">
+  <div class="spacer-m"></div>
+  <div class="wrap">
+    <div class="os" id="os">
+      <canvas class="field" id="os-field"></canvas>
+      <span class="tag os-tag">onejev.os</span>
+    </div>
+  </div>
+  <div class="spacer-m"></div>
+</section>
+
+<section class="band-paper">
+  <div class="wrap">
+    <div class="spacer-l"></div>
+    <div class="corners"><h2 class="display mid">It Reads The Screen Once And Answers Every Question</h2></div>
+    <div class="spacer-m"></div>
+    <div class="cols">
+      <div><span class="px">it looks</span><p id="col-looks">A state can hold screenshots, photos and video frames, next to the text an agent or a pipeline already has.</p></div>
+      <div><span class="px">one pass</span><p>Each question gets one calibrated distribution over its options, read off the model's own logits in a single forward pass. Nothing is generated.</p></div>
+      <div><span class="px">same api</span><p>The server speaks TypeSafe's System One API. The official <code>typesafe-sdk</code> works after changing one environment variable, and a request adds media with one extra field.</p></div>
+    </div>
+  </div>
+
+  <div class="wrap wide" id="streams-wrap">
+    <div class="spacer-l" id="live"></div>
+    <div class="corners">
+      <h2 class="display mid">Live Decisions On The Test Set</h2>
+      <p class="foot-note">Rows drawn at random from the test set, with the probabilities OneJev-27B gave them. Hover a window to hold it, click the picture to pin it.</p>
+    </div>
+    <div class="spacer-m"></div>
+    <div class="streams" id="streams"></div>
+  </div>
+  <div class="spacer-l"></div>
+</section>
+
+<section class="band-grey">
+  <div class="wrap">
+    <div class="spacer-l"></div>
+    <div class="corners" id="speed">
+      <h2 class="display mid" id="speed-title">Ten Questions, One Look</h2>
+      <p class="foot-note" id="speed-note"></p>
+    </div>
+    <div class="spacer-m"></div>
+    <div class="desk" id="race-desk">
+      <div class="desk-head"><span class="tag">one request vs ten</span><div class="desk-tabs" id="race-tabs"></div></div>
+      <div class="race" id="race"></div>
+    </div>
+    <div class="race-foot" id="race-foot"></div>
+    <div class="spacer-l"></div>
+  </div>
+</section>
+
+<section class="band-paper" id="demos">
+  <div class="wrap">
+    <div class="spacer-l"></div>
+    <div class="sec-head"><h2>Watch An Agent</h2></div>
+    <p class="lead">Five recorded agent runs from the test set, on a phone and on a desktop. Each run is cut where the question is asked, so the model sees only the steps and screens up to that point.</p>
+    <div class="spacer-s"></div>
+    <div class="desk" id="monitor-desk">
+      <div class="desk-head"><span class="tag">agent monitor</span><div class="desk-tabs" id="monitor-tabs"></div></div>
+      <div id="monitor"></div>
+    </div>
+    <div class="caption"><p id="monitor-cap">Qwen3.8-27B is the network OneJev-27B started from, asked the same question in the same way before training.</p></div>
+    <div class="spacer-l"></div>
+
+    <div class="sec-head"><h2>Pick The Next Click</h2></div>
+    <p class="lead">A web agent is halfway through a task on a real website. The question lists fifty elements on the page, and the model gives each one a probability of being the next thing to click.</p>
+    <div class="spacer-s"></div>
+    <div class="desk" id="click-desk">
+      <div class="desk-head"><span class="tag">next click</span><div class="desk-tabs" id="click-tabs"></div></div>
+      <div id="click"></div>
+    </div>
+    <div class="spacer-l"></div>
+  </div>
+</section>
+
+<section class="band-grey">
+  <div class="wrap">
+    <div class="spacer-l"></div>
+    <div class="sec-head"><h2>Follow A Recipe</h2></div>
+    <p class="lead" id="recipe-lead">Long cooking videos, sampled from the start of the recording up to the moment of the question. OneJev says which step is happening now, which one comes next, and how far along the cook is.</p>
+    <div class="spacer-s"></div>
+    <div class="desk" id="recipe-desk">
+      <div class="desk-head"><span class="tag">recipe watch</span><div class="desk-tabs" id="recipe-tabs"></div></div>
+      <div id="recipe"></div>
+    </div>
+    <div class="spacer-l"></div>
+
+    <div class="sec-head"><h2>Name The Clip</h2></div>
+    <p class="lead">Short clips with questions that need motion to answer: which of 174 hand actions, which of 47 dives, what caused a collision.</p>
+    <div class="spacer-s"></div>
+    <div class="desk" id="clip-desk">
+      <div class="desk-head"><span class="tag">clip namer</span><div class="desk-tabs" id="clip-tabs"></div></div>
+      <div id="clip"></div>
+    </div>
+    <div class="spacer-l"></div>
+  </div>
+</section>
+
+<section class="band-paper">
+  <div class="wrap">
+    <div class="spacer-l"></div>
+    <div class="sec-head"><h2>Look At Photos</h2></div>
+    <p class="lead">Fine-grained questions with up to two hundred options, a satellite tile and a map. Every card is a row of the test set.</p>
+    <div class="spacer-s"></div>
+    <div class="desk" id="photo-desk">
+      <div class="desk-head"><span class="tag">photo desk</span></div>
+      <div class="photo-grid" id="photos"></div>
+    </div>
+    <div class="spacer-l"></div>
+  </div>
+</section>
+
+<section class="band-grey">
+  <div class="wrap">
+    <div class="spacer-l"></div>
+    <div class="corners"><h2 class="display mid" id="cal-title">When It Says 0.9, It Is Right Nine Times In Ten</h2></div>
+    <div class="spacer-m"></div>
+    <div class="res-2">
+      <div class="win">
+        <div class="win-t"><span class="t">confidence.chart</span><div class="pager" id="cal-pager"></div></div>
+        <div class="win-b chart" id="cal-chart"></div>
+      </div>
+      <div class="win">
+        <div class="win-t"><span class="t">what the chart says</span></div>
+        <div class="win-b" id="cal-text"></div>
+      </div>
+    </div>
+    <div class="spacer-l"></div>
+  </div>
+</section>
+
+<section class="band-paper" id="results">
+  <div class="wrap">
+    <div class="spacer-l"></div>
+    <div class="corners">
+      <h2 class="display mid" id="res-title">Results</h2>
+      <p class="foot-note" id="res-note"></p>
+    </div>
+    <div class="spacer-m"></div>
+    <div class="res-grid">
+      <div class="win">
+        <div class="win-t"><span class="t">results.panel</span></div>
+        <div class="win-b"><div class="rpanels" id="rpanels"></div></div>
+      </div>
+      <div class="win">
+        <div class="win-t"><span class="t" id="t-test">results.table</span></div>
+        <div class="win-b">
+          <p class="body" id="test-text"></p>
+          <p class="body">DecisionBench is scored state-macro as on its card. TypeSafe uses the 354 rows of TypeSafe's public evaluation that Jev answered, with Jev's published answers as its row. MMBench (dev) and MMStar check that general vision is kept. The best cell in each row is magenta, the runner-up pale pink.</p>
+          <div class="ptable-wrap" style="margin-top:16px"><table class="ptable" id="ptable"></table></div>
+        </div>
+      </div>
+      <div class="res-2">
+        <div class="win">
+          <div class="win-t"><span class="t">before and after training</span></div>
+          <div class="win-b" id="size-panel"></div>
+        </div>
+        <div class="win">
+          <div class="win-t"><span class="t">by kind of input</span></div>
+          <div class="win-b" id="group-panel"></div>
+        </div>
+      </div>
+      <div class="win">
+        <div class="win-t"><span class="t">models that write out their reasoning</span></div>
+        <div class="win-b"><p class="body" id="think-text"></p><div class="tbl-wrap" style="margin-top:14px"><table class="res" id="tbl-think"></table></div></div>
+      </div>
+    </div>
+    <div class="spacer-l"></div>
+  </div>
+</section>
+
+<section class="band-grey" id="start">
+  <div class="wrap">
+    <div class="spacer-l"></div>
+    <div class="sec-head"><h2>Quick Start</h2></div>
+    <div class="docs">
+      <div class="win">
+        <div class="win-t"><span class="t">terminal</span></div>
+        <div class="win-b flush"><pre class="code">pip install git+https://github.com/OmniJev/OneJev.git
+qev serve --multimodal --model OmniJev/OneJev-4B --port 8000</pre></div>
+      </div>
+      <div class="win">
+        <div class="win-t"><span class="t">sdk.txt</span></div>
+        <div class="win-b"><p class="body">Requests without media are plain System One requests, and the official SDK works against the same server with <code>TYPESAFE_BASE_URL=http://localhost:8000</code>.</p></div>
+      </div>
+      <div class="win full">
+        <div class="win-t"><span class="t">example.py</span></div>
+        <div class="win-b flush"><pre class="code">from qev import Client, Choice, Noul, Score
+from qev.media import data_uri
+
+c = Client("http://localhost:8000")
+r = c.system_one(
+    state={"task": "Pay the open invoice from ACME", "screen": "&lt;image:1&gt;"},
+    media=[{"type": "image", "data": data_uri("screenshot.png")}],
+    questions={"done": Noul("The invoice has been paid"),
+               "next": Choice("What should the agent do next?",
+                              {"click": "click an element", "type": "type text", "scroll": "scroll", "stop": "stop"}),
+               "progress": Score("How far along is the task?", ["not started", "halfway", "almost done", "done"])},
+)
+r.answers["done"].noul                  <span class="c"># probability of yes</span>
+r.answers["next"].probabilities         <span class="c"># one probability per option</span>
+r.answers["progress"].score             <span class="c"># expected level</span></pre></div>
+      </div>
+    </div>
+    <div class="spacer-l"></div>
+  </div>
+</section>
+
+<section class="band-paper" id="how">
+  <div class="wrap">
+    <div class="spacer-l"></div>
+    <div class="sec-head"><h2>How It Works</h2></div>
+    <div class="docs">
+      <div>
+        <p class="body">The prompt is the state followed by one question and its lettered options. Every question of a request shares the state, so the state is prefilled once, the cache is forked, and each question runs as a short branch. All branches go through the model together. The answer is the softmax over the logits of the option letters at the last position, computed in float32.</p>
+        <p class="body">Images and video frames sit inside the state, so the vision encoder also runs once per request. Qwen's vision models place tokens with multimodal RoPE, where text after an image continues from the image's largest position. Every branch token gets the position it would have had in the full prompt, and the branches reproduce the full-prompt probabilities: to 1e-5 in float32, and to at most 0.016 in bfloat16 over 229 real test questions.</p>
+        <p class="body">The server checks this on a synthetic image at load time and refuses to start if a future library version breaks it.</p>
+      </div>
+      <div class="win">
+        <div class="win-t"><span class="t">one request</span></div>
+        <div class="win-b flush"><pre class="code">state: text + &lt;image:1&gt; + &lt;video:1&gt;
+  |
+  |  vision encoder, once
+  |  prefill, once
+  v
+ [ shared cache ]
+  |-- question 1 + options A..D -&gt; softmax(A..D)
+  |-- question 2 + options A..B -&gt; softmax(A..B)
+  |-- ...
+  '-- question N + options A..K -&gt; softmax(A..K)
+
+every branch in one batch, nothing decoded</pre></div>
+      </div>
+    </div>
+
+    <div class="spacer-l"></div>
+    <div class="sec-head"><h2>API</h2></div>
+    <div class="docs">
+      <div>
+        <p class="body"><code>POST /v1/systemone</code> takes TypeSafe's request (<code>state</code>, <code>questions</code>, <code>model</code>) plus an optional <code>media</code> list. The state refers to each item once, in order, as <code>&lt;image:N&gt;</code> or <code>&lt;video:N&gt;</code>.</p>
+        <p class="body">Questions are <code>noul</code> (yes or no), <code>choice</code> (up to 255 options) and <code>score</code> (up to 10 ordered levels), answered in TypeSafe's response format. A request whose placeholders do not match its media, or that sends a local path to a server started without <code>--media-root</code>, gets a <code>422</code>.</p>
+      </div>
+      <div class="win">
+        <div class="win-t"><span class="t">media items</span></div>
+        <div class="win-b"><table class="plain">
+          <tr><th>item</th><th>fields</th></tr>
+          <tr><td>image</td><td><code>{"type": "image", "url": ...}</code>, <code>{"type": "image", "data": ...}</code> with base64 or a data URI, or <code>"path"</code> under <code>--media-root</code></td></tr>
+          <tr><td>video</td><td><code>{"type": "video", "frames": [...], "fps": 2.0}</code>, frames extracted beforehand; <code>fps</code> sets the timestamps the model sees</td></tr>
+        </table></div>
+      </div>
+    </div>
+
+    <div class="spacer-l"></div>
+    <div class="sec-head"><h2>Training</h2></div>
+    <div class="docs">
+      <div>
+        <p class="body" id="train-text">OneJev comes in four sizes, full-parameter fine-tunes of Qwen3.5-0.8B, Qwen3.5-4B, Qwen3.5-9B and Qwen3.8-27B, all trained on the same questions. Answers come from what actually happened (whether the run succeeded, what the agent did next, which step of the recipe is on screen) or from each dataset's own labels; part of the business-rule set was labelled by Qwen3.5-27B.</p>
+        <p class="body">One epoch with the vision tower frozen, learning rate 5e-6 with cosine decay, 64 questions per step, cross-entropy plus an equal-weight Brier term on the option letters. The 9B and 27B runs shard weights, gradients and optimizer state with FSDP. 589 training questions that shared a task with a test question were removed before training.</p>
+      </div>
+      <div class="win">
+        <div class="win-t"><span class="t">training mix</span></div>
+        <div class="win-b" style="overflow-x:auto"><table class="plain" id="tbl-mix"></table></div>
+      </div>
+    </div>
+    <div class="spacer-l"></div>
+  </div>
+</section>
+
+<footer class="band-ink">
+  <div class="foot-in">
+    <div id="foot-eye" aria-hidden="true"></div>
+    <div class="win">
+      <div class="win-t"><span class="t">onejev.txt</span></div>
+      <div class="win-b">OneJev, version 1.0<br>Apache-2.0, like the Qwen bases<br><a href="https://github.com/OmniJev/OneJev">github.com/OmniJev/OneJev</a><br><a href="video.html">the promo video</a></div>
+    </div>
+  </div>
+</footer>
+
+<noscript><p class="noscript">This page draws its numbers from data/results.json and needs JavaScript.</p></noscript>
+<script src="omni.js"></script>
+</body>
+</html>
