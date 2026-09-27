@@ -5,7 +5,7 @@
   </picture>
 </p>
 
-<p align="center"><a href="../README.md">English</a> · <b>简体中文</b> · <a href="README_ja.md">日本語</a></p>
+<p align="center"><a href="https://github.com/OmniJev/OneJev">English</a> · <b>简体中文</b> · <a href="README_ja.md">日本語</a></p>
 
 <p align="center">
   <a href="https://huggingface.co/OmniJev/OneJev"><img alt="Hugging Face" src="https://img.shields.io/badge/Hugging_Face-OneJev-FFD21E?style=flat-square&logo=huggingface&logoColor=black"></a>
