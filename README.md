@@ -98,14 +98,6 @@ video   {"type": "video", "frames": [<image>, ...], "fps": 2.0}
 
 Full-parameter fine-tuning of Qwen3.5-0.8B, Qwen3.5-4B, Qwen3.5-9B and Qwen3.8-27B for one epoch, vision tower frozen.
 
-```text
-GUI agents (web, desktop, phone)   34,882
-text agent runs                    17,529
-images                             14,003
-short video                        14,000
-business rules                     12,000
-long procedural video               6,779
-```
 
 ## License
 
