@@ -51,6 +51,18 @@ class GraphMemoryLow(RuntimeError):
     """Not enough free GPU memory to capture another graph, even after dropping the cached ones."""
 
 
+def _host_available() -> int:
+    """MemAvailable from /proc/meminfo: on a GPU that shares system memory, reclaimable page cache is free for CUDA
+    too, while torch.cuda.mem_get_info counts it as used."""
+    try:
+        for line in open("/proc/meminfo"):
+            if line.startswith("MemAvailable:"):
+                return int(line.split()[1]) * 1024
+    except OSError:
+        pass
+    return 0
+
+
 def _make_room(evict, reserve_fraction: float = 0.1, reserve_bytes: int = 8 << 30) -> None:
     """Before a capture: drop the least recently used graphs (evict() drops one, False when none are left) until the
     device has the reserve free; raise GraphMemoryLow when it still does not. Each graph keeps its own memory pool, so
@@ -59,6 +71,8 @@ def _make_room(evict, reserve_fraction: float = 0.1, reserve_bytes: int = 8 << 3
 
     def low() -> bool:
         free, total = torch.cuda.mem_get_info()
+        if torch.cuda.get_device_properties(torch.cuda.current_device()).is_integrated:
+            free = max(free, _host_available())
         return free < max(reserve_bytes, reserve_fraction * total)
 
     if low():
