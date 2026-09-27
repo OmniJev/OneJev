@@ -76,7 +76,8 @@ r.answers["progress"].score             # expected level
 ```
 
 Text-only requests are plain System One requests; the official `typesafe-sdk` works with
-`TYPESAFE_BASE_URL=http://localhost:8000`.
+`TYPESAFE_BASE_URL=http://localhost:8000`. More in [examples/](examples): a screenshot, a video, curl, and the official
+SDK. [benchmarks/latency.py](benchmarks/latency.py) measures the speed chart on your own GPU.
 
 ## How it works
 
@@ -98,6 +99,16 @@ video   {"type": "video", "frames": [<image>, ...], "fps": 2.0}
 
 Full-parameter fine-tuning of Qwen3.5-0.8B, Qwen3.5-4B, Qwen3.5-9B and Qwen3.8-27B for one epoch, vision tower frozen.
 
+## Citation
+
+```bibtex
+@misc{onejev2026,
+  title        = {{OneJev}: A Multimodal System One Decision Model},
+  author       = {{OmniJev Team}},
+  year         = {2026},
+  howpublished = {\url{https://github.com/OmniJev/OneJev}}
+}
+```
 
 ## License
 

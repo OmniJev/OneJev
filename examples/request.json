@@ -1,0 +1,19 @@
+{
+  "model": "jev-latest",
+  "state": {
+    "photo": "<image:1>",
+    "context": "a picture a user uploaded to a pet adoption site"
+  },
+  "media": [
+    {"type": "image", "url": "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/pipeline-cat-chonk.jpeg"}
+  ],
+  "questions": {
+    "animal": {"type": "noul", "instructions": "The photo shows an animal"},
+    "species": {
+      "type": "choice",
+      "instructions": "Which animal is it?",
+      "criteria": {"cat": "a cat", "dog": "a dog", "rabbit": "a rabbit", "other": "something else"}
+    },
+    "quality": {"type": "score", "instructions": "How good is the photo for an adoption listing?", "criteria": ["unusable", "poor", "fine", "great"]}
+  }
+}
