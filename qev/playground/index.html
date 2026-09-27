@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qev Playground</title>
+<style>
+  :root { --bg:#f7f7f5; --fg:#1b1b1b; --muted:#6b6b6b; --card:#fff; --line:#e3e3df; --acc:#2f6f4f; --bar:#8fd3ae; --warn:#c0392b; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#141414; --fg:#eaeaea; --muted:#9a9a9a; --card:#1e1e1e; --line:#333; --acc:#7cc79d; --bar:#2f6f4f; } }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:24px 16px; background:var(--bg); color:var(--fg); font:14px/1.45 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; }
+  main { max-width:1100px; margin:0 auto; }
+  h1 { font-size:20px; margin:0 0 4px; } .sub { color:var(--muted); margin:0 0 18px; }
+  .grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; } @media (max-width:820px){ .grid{ grid-template-columns:1fr; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; }
+  label { display:block; font-weight:600; margin:0 0 6px; }
+  textarea { width:100%; min-height:220px; font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace; padding:10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--fg); resize:vertical; }
+  button { background:var(--acc); color:#fff; border:0; border-radius:8px; padding:10px 16px; font-weight:600; cursor:pointer; }
+  button:disabled { opacity:.5; cursor:wait; }
+  .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px; }
+  .ans { margin-top:12px; padding-top:12px; border-top:1px solid var(--line); }
+  .ans h3 { margin:0 0 6px; font-size:14px; } .ans .kind { color:var(--muted); font-weight:400; margin-left:6px; }
+  .bar { display:grid; grid-template-columns: 180px 1fr 56px; gap:8px; align-items:center; margin:3px 0; }
+  .bar .track { height:12px; background:var(--line); border-radius:6px; overflow:hidden; } .bar .fill { height:100%; background:var(--bar); }
+  .bar .lbl { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .meta { color:var(--muted); font-size:12px; margin-top:10px; } .err { color:var(--warn); white-space:pre-wrap; }
+  code { font-family: ui-monospace,SFMono-Regular,Menlo,monospace; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Qev Playground</h1>
+  <p class="sub">Paste a state, ask typed questions, read probabilities. Same request and response shapes as <code>POST /v1/systemone</code>.</p>
+  <div class="grid">
+    <div class="card">
+      <label for="state">State (text or JSON)</label>
+      <textarea id="state">Hi, I've been trying to connect my Stripe account for 3 days and it keeps failing. I'm losing sales. Please help ASAP.</textarea>
+      <label for="questions" style="margin-top:12px">Questions (JSON map)</label>
+      <textarea id="questions">{
+  "department": {"type": "choice", "instructions": "Which team should handle this?",
+    "criteria": {"billing": "Payment or subscription issues", "technical": "Bugs or integration problems", "sales": "Pricing or account questions"}},
+  "frustration": {"type": "score", "instructions": "How frustrated does the customer appear?",
+    "criteria": ["Calm, just stating facts", "Frustrated but civil", "Very angry, strong language"]},
+  "is_urgent": {"type": "noul", "instructions": "The message conveys urgency or time-sensitivity"}
+}</textarea>
+      <div class="row">
+        <button id="run">Evaluate</button>
+        <label style="font-weight:400;margin:0"><input type="checkbox" id="debias"> permutation debias</label>
+        <span id="status" class="meta"></span>
+      </div>
+    </div>
+    <div class="card">
+      <label>Answers</label>
+      <div id="out"><span class="meta">Nothing yet.</span></div>
+    </div>
+  </div>
+  <p class="meta">curl: <code>curl -s localhost:8000/v1/systemone -H 'Content-Type: application/json' -d '{"state":"...","model":"jev-latest","questions":{...}}'</code></p>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+function parseState(s) { s = s.trim(); if (!s) return ""; try { return JSON.parse(s); } catch (e) { return s; } }
+function bars(probs) {
+  return Object.entries(probs).map(([k, v]) => `<div class="bar"><span class="lbl" title="${k}">${k}</span><div class="track"><div class="fill" style="width:${(v*100).toFixed(1)}%"></div></div><span>${v.toFixed(3)}</span></div>`).join("");
+}
+async function run() {
+  const btn = $("run"), out = $("out"), st = $("status");
+  let questions;
+  try { questions = JSON.parse($("questions").value); } catch (e) { out.innerHTML = `<div class="err">questions is not valid JSON: ${e.message}</div>`; return; }
+  btn.disabled = true; st.textContent = "evaluating..."; const t0 = performance.now();
+  try {
+    const q = $("debias").checked ? "?debias=3" : "";
+    const r = await fetch("/v1/systemone" + q, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer local" },
+      body: JSON.stringify({ state: parseState($("state").value), model: "jev-latest", questions }) });
+    const data = await r.json();
+    if (!r.ok) { out.innerHTML = `<div class="err">${r.status}: ${JSON.stringify(data, null, 2)}</div>`; return; }
+    let html = "";
+    for (const [id, a] of Object.entries(data.answers)) {
+      if (a.type === "noul") html += `<div class="ans"><h3>${id}<span class="kind">noul</span></h3>${bars({ yes: a.noul, no: 1 - a.noul })}</div>`;
+      else if (a.type === "choice") html += `<div class="ans"><h3>${id}<span class="kind">choice: <b>${a.choice}</b>, confidence ${a.confidence.toFixed(3)}</span></h3>${bars(a.probabilities)}</div>`;
+      else html += `<div class="ans"><h3>${id}<span class="kind">score: <b>${a.score.toFixed(3)}</b>, confidence ${a.confidence.toFixed(3)}</span></h3>${bars(Object.fromEntries(Object.entries(a.probabilities).map(([k, v]) => [`${k}: ${typeof a.legend[k] === "string" ? a.legend[k] : JSON.stringify(a.legend[k])}`, v])))}</div>`;
+    }
+    const m = data.qev || {};
+    html += `<div class="meta">model ${data.model}, ${data.usage.input_tokens} input tokens, ${m.branches || "?"} branches, fork ${m.fork_mode || "?"}, forward ${m.timing ? (m.timing.forward_s * 1000).toFixed(0) : "?"} ms, round trip ${(performance.now() - t0).toFixed(0)} ms</div>`;
+    out.innerHTML = html;
+  } catch (e) { out.innerHTML = `<div class="err">${e.message}</div>`; }
+  finally { btn.disabled = false; st.textContent = ""; }
+}
+$("run").addEventListener("click", run);
+</script>
+</body>
+</html>
