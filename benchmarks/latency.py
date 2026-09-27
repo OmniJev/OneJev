@@ -1,7 +1,7 @@
 """Latency of one request on one image: 1 question, 10 questions in one request, and the 10 as separate requests.
 Median of warm runs, image decoding and preprocessing included (the setup of the README speed chart).
 
-    python benchmarks/latency.py --model OmniJev/OneJev/4B --image screenshot.png
+    python benchmarks/latency.py --model OmniJev/OneJev-4B --image screenshot.png
 """
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ QUESTIONS = {
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--model", default="OmniJev/OneJev/4B")
+    ap.add_argument("--model", default="OmniJev/OneJev-4B")
     ap.add_argument("--image", required=True)
     ap.add_argument("--runs", type=int, default=5)
     ap.add_argument("--quantize", default=None, choices=["fp8"])

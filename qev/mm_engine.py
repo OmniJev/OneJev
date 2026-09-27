@@ -34,7 +34,7 @@ MARK = "QEV_PREFIX_MARK"
 
 
 def local_model_dir(name: str) -> str:
-    """A local directory, a Hub repository id, or a folder inside a Hub repository (OmniJev/OneJev/4B), as a local
+    """A local directory, a Hub repository id, or a folder inside a Hub repository (org/repo/folder), as a local
     directory; a folder is fetched on its own."""
     if Path(name).exists():
         return name

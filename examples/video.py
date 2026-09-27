@@ -1,6 +1,6 @@
 """Questions about a video given as frames: every image in a folder, in name order.
 
-    qev serve --model OmniJev/OneJev/4B
+    qev serve --model OmniJev/OneJev-4B
     python examples/video.py frames/ --fps 2
 """
 import argparse

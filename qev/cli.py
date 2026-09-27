@@ -8,9 +8,9 @@ import os
 import sys
 from pathlib import Path
 
-DEFAULT_MODEL = "OmniJev/OneJev/4B"
+DEFAULT_MODEL = "OmniJev/OneJev-4B"
 
-MODEL_ALIASES = {f"onejev-{s.lower()}": f"OmniJev/OneJev/{s}" for s in ("0.8B", "4B", "9B", "27B", "27B-FP8")}
+MODEL_ALIASES = {f"onejev-{s.lower()}": f"OmniJev/OneJev-{s}" for s in ("0.8B", "4B", "9B", "27B", "27B-FP8")}
 
 
 def _resolve_model(name: str) -> str:
@@ -98,7 +98,7 @@ def main() -> None:
 
     s = sub.add_parser("serve", help="start the API server")
     s.add_argument("--model", default=DEFAULT_MODEL,
-                   help="release alias (onejev-4b), HF id, a folder of one (OmniJev/OneJev/4B), or local path")
+                   help="release alias (onejev-4b), HF id (OmniJev/OneJev-4B), or local path")
     s.add_argument("--name", default=None, help="model name reported by the API (default: last path component)")
     s.add_argument("--calibration", default=None,
                    help="calibration.json with temperatures (default: the one shipped next to the weights, if any)")

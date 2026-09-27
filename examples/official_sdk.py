@@ -1,7 +1,7 @@
 """The official TypeSafe SDK, unchanged, against a local OneJev server (text requests).
 
     pip install typesafe-sdk
-    qev serve --model OmniJev/OneJev/4B
+    qev serve --model OmniJev/OneJev-4B
     TYPESAFE_API_KEY=local python examples/official_sdk.py
 """
 from typesafe_sdk import Choice, Noul, Score, TypeSafeClient

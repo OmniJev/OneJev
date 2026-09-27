@@ -1,6 +1,6 @@
 """Three questions about one screenshot, answered in one request.
 
-    qev serve --model OmniJev/OneJev/4B
+    qev serve --model OmniJev/OneJev-4B
     python examples/screenshot.py screenshot.png
 """
 import sys
