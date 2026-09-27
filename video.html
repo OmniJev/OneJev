@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OneJev Video</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%23fefefe'/%3E%3Cpath fill='%231e1e1e' d='M0 2h16v1H0zM0 3h1v1H0zM15 3h1v1H15zM0 4h1v1H0zM15 4h1v1H15zM0 5h1v1H0zM15 5h1v1H15zM0 6h1v1H0zM15 6h1v1H15zM0 7h1v1H0zM15 7h1v1H15zM0 8h1v1H0zM15 8h1v1H15zM0 9h1v1H0zM15 9h1v1H15zM0 10h1v1H0zM15 10h1v1H15zM0 11h1v1H0zM15 11h1v1H15zM0 12h16v1H0zM6 13h4v1H6z'/%3E%3Cpath fill='%23d45bb6' d='M5 4h6v1H5zM3 5h2v1H3zM11 5h2v1H11zM2 6h1v1H2zM13 6h1v1H13zM1 7h1v1H1zM14 7h1v1H14zM2 8h1v1H2zM13 8h1v1H13zM3 9h2v1H3zM11 9h2v1H11zM5 10h6v1H5z'/%3E%3Cpath fill='%23f386a1' d='M6 6h4v1H6zM5 7h6v1H5zM6 8h4v1H6z'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="omni.css">
+<style>
+  .vwrap { max-width: 1280px; margin: 0 auto; padding: 92px var(--gut) 70px; }
+  .vwrap video { display: block; width: 100%; height: auto; background: var(--ink); }
+  .vtitle { margin: 6px 0 26px; }
+  .vfoot { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+  .vnote { margin-top: 30px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+  .vnote > div { background: var(--paper); border: 2px solid var(--ink); box-shadow: var(--shadow); padding: 0 0 14px; }
+  .vnote .px { display: block; font: 400 17px/1 var(--mono); background: var(--accent); color: var(--paper); padding: 7px 12px 6px; margin-bottom: 12px; border-bottom: 2px solid var(--ink); }
+  .vnote p { font-size: 17px; line-height: 1.5; padding: 0 14px; }
+  @media (max-width: 800px) { .vnote { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <nav><a class="brand" href="index.html"><span id="nav-eye"></span>OneJev</a></nav>
+  <nav class="mid"><a href="index.html#live">Live</a><a href="index.html#demos">Demos</a><a href="index.html#results">Results</a><a href="video.html">Video</a></nav>
+  <nav class="end"><a href="https://github.com/OmniJev/OneJev">GitHub</a><a class="dark" href="https://huggingface.co/OmniJev">Weights</a></nav>
+</header>
+<main class="vwrap">
+  <h1 class="display vtitle">Filter. Decide. Rate.</h1>
+  <div class="win">
+    <div class="win-t"><span class="t">onejev-promo.mov</span></div>
+    <div class="win-b flush"><video poster="promo/poster.jpg" controls playsinline preload="auto"><source src="promo/onejev-promo-v7.mp4" type="video/mp4"><source src="promo/onejev-promo-v7.webm" type="video/webm"></video></div>
+  </div>
+  <div class="vfoot">
+    <a class="btn" href="promo/onejev-promo-v7.mp4" download>Download the mp4</a>
+    <a class="btn light" href="index.html">Open the site</a>
+  </div>
+  <div class="vnote">
+    <div><span class="px">filter</span><p>Recorded agent runs pass under one question: did the agent finish? Each run lands in the finished or the not finished pile.</p></div>
+    <div><span class="px">decide</span><p>A bird out of 200 species and the next click out of 50 page elements, then a wall of every kind of question.</p></div>
+    <div><span class="px">rate</span><p>Five photos scored for quality and sorted by the score, then a cooking video whose progress meter climbs level by level.</p></div>
+  </div>
+</main>
+<script src="omni.js"></script>
+</body>
+</html>
