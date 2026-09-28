@@ -1,0 +1,26 @@
+model: Qwen/Qwen3.5-0.8B
+train: data/onejev/train.jsonl
+media_root: data/onejev
+name: onejev_08b
+runs_dir: train/runs
+dtype: bfloat16
+multimodal: true
+full_finetune: true
+
+lr: 5.0e-6
+epochs: 1
+max_len: 16384
+batch_tokens: 16384
+max_rows: 64
+accum_rows: 64
+brier_weight: 1.0
+warmup_frac: 0.03
+weight_decay: 0.0
+max_grad_norm: 1.0
+
+augment: true
+pad_options: 0.5
+seed: 0
+log_every: 10
+save_every: 500
+eval_every: 250

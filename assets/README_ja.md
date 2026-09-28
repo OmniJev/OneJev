@@ -90,6 +90,16 @@ video   {"type": "video", "frames": [<image>, ...], "fps": 2.0}
 
 Qwen3.5-0.8B、Qwen3.5-4B、Qwen3.5-9B、Qwen3.8-27B を 1 エポック、全パラメータでファインチューニングしました。ビジョンタワーは固定しています。
 
+データは [Hugging Face](https://huggingface.co/datasets/OmniJev/OneJev-Data) にあります。
+
+```bash
+git clone https://github.com/OmniJev/OneJev.git && cd OneJev
+pip install -e ".[train]"
+hf download OmniJev/OneJev-Data --repo-type dataset --local-dir data/onejev
+python -m train.unpack data/onejev
+torchrun --nproc-per-node 4 -m train.sft --config train/configs/onejev_4b_full.yaml
+```
+
 ## 引用
 
 ```bibtex
