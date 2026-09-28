@@ -65,10 +65,12 @@ def cmd_serve(args: argparse.Namespace) -> None:
                                   fork_mode=args.fork_mode, head_dtype=args.head_dtype, media_root=args.media_root,
                                   allow_local_paths=args.media_root is not None,
                                   gpu_preprocess=not args.no_gpu_preprocess, cuda_graphs=not args.no_cuda_graphs,
-                                  quantize=args.quantize)
+                                  quantize=args.quantize, max_branch_tokens=args.max_branch_tokens,
+                                  max_request_tokens=args.max_request_tokens)
     else:
         engine = DecisionEngine(model_path, device=args.device, dtype=args.dtype, calibration=calib,
-                                fork_mode=args.fork_mode, head_dtype=args.head_dtype)
+                                fork_mode=args.fork_mode, head_dtype=args.head_dtype,
+                                max_branch_tokens=args.max_branch_tokens, max_request_tokens=args.max_request_tokens)
     parts = args.model.split("/")
     default_name = "-".join(parts[1:]) if len(parts) > 2 else Path(args.model).name
     app = create_app(engine, model_name=args.name or default_name)
@@ -116,6 +118,9 @@ def main() -> None:
                    help="with --multimodal, run the decoder's linear layers in FP8 (an -FP8 checkpoint does this by itself)")
     s.add_argument("--no-gpu-preprocess", action="store_true",
                    help="with --multimodal, normalise images and frames on the CPU (they are resized on the CPU either way)")
+    s.add_argument("--max-branch-tokens", type=int, default=32768,
+                   help="longest state plus one question the server accepts (the bases take 262,144 positions)")
+    s.add_argument("--max-request-tokens", type=int, default=65536, help="longest whole request the server accepts")
     s.add_argument("--host", default="0.0.0.0")
     s.add_argument("--port", type=int, default=8000)
     s.set_defaults(func=cmd_serve)
