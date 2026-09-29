@@ -225,14 +225,24 @@
     <div class="spacer-l"></div>
     <div class="sec-head"><h2>Quick Start</h2></div>
     <div class="docs">
-      <div class="win">
+      <div class="win full">
         <div class="win-t"><span class="t">terminal</span></div>
-        <div class="win-b flush"><pre class="code">pip install git+https://github.com/OmniJev/OneJev.git
+        <div class="win-b flush"><pre class="code">pip install "qev[torch] @ git+https://github.com/OmniJev/OneJev.git"
 qev serve --model OmniJev/OneJev-4B --port 8000</pre></div>
+      </div>
+      <div class="win full">
+        <div class="win-t"><span class="t">llama.cpp</span></div>
+        <div class="win-b flush"><pre class="code">brew install llama.cpp
+pip install git+https://github.com/OmniJev/OneJev.git
+qev serve --gguf mradermacher/OneJev-4B-GGUF:Q8_0 --port 8000</pre></div>
       </div>
       <div class="win">
         <div class="win-t"><span class="t">sdk.txt</span></div>
         <div class="win-b"><p class="body">Requests without media are plain System One requests, and the official SDK works against the same server with <code>TYPESAFE_BASE_URL=http://localhost:8000</code>.</p></div>
+      </div>
+      <div class="win">
+        <div class="win-t"><span class="t">gguf.txt</span></div>
+        <div class="win-b"><p class="body">The same server runs GGUF files on llama.cpp without PyTorch, images included. On 1,234 test questions the 4B at Q8_0 gives the PyTorch server's answer 99.1% of the time.</p></div>
       </div>
       <div class="win full">
         <div class="win-t"><span class="t">example.py</span></div>
