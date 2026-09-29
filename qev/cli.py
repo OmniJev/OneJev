@@ -42,6 +42,56 @@ def _find_calibration(model_path: str) -> str | None:
         return None
 
 
+def _serve_gguf(args: argparse.Namespace) -> None:
+    import atexit
+    import signal
+
+    import uvicorn
+
+    from .calibrate import Calibration
+    from .llamacpp import LlamaCppEngine, LlamaServer, tokenizer_repo
+    from .server import create_app
+
+    source = args.gguf or args.llama_url
+    tok = args.tokenizer or tokenizer_repo(source)
+    if tok is None:
+        raise SystemExit("cannot tell which OneJev size this GGUF is; pass --tokenizer OmniJev/OneJev-<size>")
+    tok_dir = _tokenizer_dir(tok)
+    calib_path = args.calibration or _find_calibration(tok)
+    calib = Calibration.load(calib_path) if calib_path else None
+    proc_cfg = Path(tok_dir) / "processor_config.json"
+    image_config = json.loads(proc_cfg.read_text()).get("image_processor", {}) if proc_cfg.exists() else {}
+    url = args.llama_url
+    if url is None:
+        server = LlamaServer(args.gguf, binary=args.llama_server, mmproj=args.mmproj, ctx=args.max_branch_tokens,
+                             parallel=args.parallel)
+        atexit.register(server.stop)
+
+        def stop(signum, frame):
+            server.stop()
+            raise SystemExit(128 + signum)
+
+        for sig in (signal.SIGTERM, signal.SIGINT):
+            signal.signal(sig, stop)
+        url = server.url
+    if args.gguf and Path(args.gguf).exists():
+        name = args.name or Path(args.gguf).name.removesuffix(".gguf")
+    else:
+        name = args.name or (args.gguf or tok).split("/")[-1].replace(":", "-")
+    engine = LlamaCppEngine(url, tok_dir, calibration=calib, name=name, max_branch_tokens=args.max_branch_tokens,
+                            max_request_tokens=args.max_request_tokens, image_config=image_config)
+    app = create_app(engine, model_name=name)
+    uvicorn.run(app, host=args.host, port=args.port, log_level="info")
+
+
+def _tokenizer_dir(name: str) -> str:
+    if Path(name).exists():
+        return name
+    from huggingface_hub import snapshot_download
+
+    return snapshot_download(name, allow_patterns=["*.json", "*.jinja", "*.txt"])
+
+
 def cmd_serve(args: argparse.Namespace) -> None:
     import uvicorn
 
@@ -50,6 +100,13 @@ def cmd_serve(args: argparse.Namespace) -> None:
     from .server import create_app
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
+    if args.gguf or args.llama_url:
+        return _serve_gguf(args)
+    import importlib.util
+
+    if importlib.util.find_spec("torch") is None:
+        raise SystemExit('serving safetensors weights needs PyTorch: pip install "qev[torch] @ '
+                         'git+https://github.com/OmniJev/OneJev.git", or serve a GGUF file with --gguf')
     from .mm_engine import local_model_dir
 
     model_path = local_model_dir(_resolve_model(args.model))
@@ -121,6 +178,15 @@ def main() -> None:
     s.add_argument("--max-branch-tokens", type=int, default=32768,
                    help="longest state plus one question the server accepts (the bases take 262,144 positions)")
     s.add_argument("--max-request-tokens", type=int, default=65536, help="longest whole request the server accepts")
+    s.add_argument("--gguf", default=None,
+                   help="run a GGUF model on llama.cpp: a local .gguf file or a Hub repo:quant "
+                        "(mradermacher/OneJev-4B-GGUF:Q4_K_M); needs llama-server")
+    s.add_argument("--llama-url", default=None, help="use a running llama-server at this URL instead of starting one")
+    s.add_argument("--llama-server", default="llama-server", help="llama-server binary for --gguf")
+    s.add_argument("--mmproj", default=None, help="vision projector GGUF for --gguf (found next to a local file)")
+    s.add_argument("--tokenizer", default=None,
+                   help="OneJev repository or directory for the tokenizer with --gguf (guessed from the file name)")
+    s.add_argument("--parallel", type=int, default=2, help="llama-server slots for --gguf")
     s.add_argument("--host", default="0.0.0.0")
     s.add_argument("--port", type=int, default=8000)
     s.set_defaults(func=cmd_serve)

@@ -10,18 +10,18 @@ readme = "README.md"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.10"
 dependencies = [
-  "torch>=2.6",
   "transformers>=5.0",
-  "accelerate>=1.0",
-  "safetensors>=0.4",
+  "pillow>=10",
+  "jinja2>=3.1",
   "pydantic>=2.0",
   "fastapi>=0.110",
   "uvicorn>=0.30",
 ]
 
 [project.optional-dependencies]
+torch = ["torch>=2.6", "torchvision>=0.21", "accelerate>=1.0", "safetensors>=0.4"]
 dev = ["pytest>=8", "httpx>=0.27", "typesafe-sdk>=0.6"]
-train = ["peft>=0.13", "pyyaml>=6", "pyarrow>=14"]
+train = ["torch>=2.6", "torchvision>=0.21", "accelerate>=1.0", "safetensors>=0.4", "peft>=0.13", "pyyaml>=6", "pyarrow>=14"]
 
 [project.scripts]
 qev = "qev.cli:main"

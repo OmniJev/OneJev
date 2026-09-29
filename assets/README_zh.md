@@ -52,7 +52,7 @@
 ## 快速开始
 
 ```bash
-pip install git+https://github.com/OmniJev/OneJev.git
+pip install "qev[torch] @ git+https://github.com/OmniJev/OneJev.git"
 qev serve --model OmniJev/OneJev-4B --port 8000
 ```
 
@@ -74,6 +74,20 @@ r.answers["progress"].score             # 期望等级
 ```
 
 纯文本请求就是普通的 System One 请求；官方 `typesafe-sdk` 设置 `TYPESAFE_BASE_URL=http://localhost:8000` 即可使用。更多示例见 [examples/](../examples)：截图、视频、curl 和官方 SDK。[benchmarks/latency.py](../benchmarks/latency.py)可以在你自己的 GPU 上测出速度图里的数字。
+
+## llama.cpp
+
+OneJev 也能在 llama.cpp 上运行。装好 llama.cpp，再让 `qev serve` 指向 Hugging Face 上的 GGUF 仓库或本地的 .gguf 文件。
+
+```bash
+brew install llama.cpp
+pip install git+https://github.com/OmniJev/OneJev.git
+qev serve --gguf mradermacher/OneJev-4B-GGUF:Q8_0 --port 8000
+```
+
+接口完全相同，也支持图片；视频目前需要 PyTorch 服务。在 1,234 道测试题上，4B 的 GGUF 与 PyTorch 服务给出相同答案的比例在 f16 下是 99.8%，Q8_0 是 99.1%，Q4_K_M 是 93.7%，准确率最多相差 0.2 个百分点。四个尺寸的 GGUF 都在 Hugging Face 上，由 mradermacher 制作：
+[0.8B](https://huggingface.co/mradermacher/OneJev-0.8B-GGUF), [4B](https://huggingface.co/mradermacher/OneJev-4B-GGUF),
+[9B](https://huggingface.co/mradermacher/OneJev-9B-GGUF), [27B](https://huggingface.co/mradermacher/OneJev-27B-GGUF).
 
 ## 工作原理
 

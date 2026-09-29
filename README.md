@@ -58,7 +58,7 @@ answer, OneJev answers directly.
 ## Quick start
 
 ```bash
-pip install git+https://github.com/OmniJev/OneJev.git
+pip install "qev[torch] @ git+https://github.com/OmniJev/OneJev.git"
 qev serve --model OmniJev/OneJev-4B --port 8000
 ```
 
@@ -82,6 +82,23 @@ r.answers["progress"].score             # expected level
 Text-only requests are plain System One requests; the official `typesafe-sdk` works with
 `TYPESAFE_BASE_URL=http://localhost:8000`. More in [examples/](examples): a screenshot, a video, curl, and the official
 SDK. [benchmarks/latency.py](benchmarks/latency.py) measures the speed chart on your own GPU.
+
+## llama.cpp
+
+OneJev also runs on llama.cpp. Install llama.cpp and point `qev serve` at a GGUF repo on Hugging Face or a local .gguf
+file.
+
+```bash
+brew install llama.cpp
+pip install git+https://github.com/OmniJev/OneJev.git
+qev serve --gguf mradermacher/OneJev-4B-GGUF:Q8_0 --port 8000
+```
+
+The API is the same, images included; video needs the PyTorch server. On 1,234 test questions the 4B GGUF gives the same
+answer as the PyTorch server 99.8% of the time at f16, 99.1% at Q8_0 and 93.7% at Q4_K_M, and accuracy moves by at most
+0.2 points. GGUF files for every size are on Hugging Face, made by mradermacher:
+[0.8B](https://huggingface.co/mradermacher/OneJev-0.8B-GGUF), [4B](https://huggingface.co/mradermacher/OneJev-4B-GGUF),
+[9B](https://huggingface.co/mradermacher/OneJev-9B-GGUF), [27B](https://huggingface.co/mradermacher/OneJev-27B-GGUF).
 
 ## How it works
 

@@ -52,7 +52,7 @@ OneJev を提案します。マルチモーダルな System One 意思決定モ�
 ## クイックスタート
 
 ```bash
-pip install git+https://github.com/OmniJev/OneJev.git
+pip install "qev[torch] @ git+https://github.com/OmniJev/OneJev.git"
 qev serve --model OmniJev/OneJev-4B --port 8000
 ```
 
@@ -74,6 +74,20 @@ r.answers["progress"].score             # 期待レベル
 ```
 
 テキストのみのリクエストは通常の System One リクエストです。公式の `typesafe-sdk` も`TYPESAFE_BASE_URL=http://localhost:8000` を設定すればそのまま使えます。そのほかの例は [examples/](../examples)にあります（スクリーンショット、動画、curl、公式 SDK）。[benchmarks/latency.py](../benchmarks/latency.py) で速度グラフの数値を手元の GPU で測れます。
+
+## llama.cpp
+
+OneJev は llama.cpp でも動きます。llama.cpp をインストールし、`qev serve` に Hugging Face 上の GGUF リポジトリかローカルの .gguf ファイルを指定します。
+
+```bash
+brew install llama.cpp
+pip install git+https://github.com/OmniJev/OneJev.git
+qev serve --gguf mradermacher/OneJev-4B-GGUF:Q8_0 --port 8000
+```
+
+API は同じで、画像も使えます。動画には PyTorch サーバーが必要です。テスト 1,234 問で、4B の GGUF が PyTorch サーバーと同じ答えを返した割合は f16 で 99.8%、Q8_0 で 99.1%、Q4_K_M で 93.7% で、正解率の差は最大 0.2 ポイントです。4 サイズすべての GGUF が Hugging Face にあり、mradermacher さんが作成しました：
+[0.8B](https://huggingface.co/mradermacher/OneJev-0.8B-GGUF), [4B](https://huggingface.co/mradermacher/OneJev-4B-GGUF),
+[9B](https://huggingface.co/mradermacher/OneJev-9B-GGUF), [27B](https://huggingface.co/mradermacher/OneJev-27B-GGUF).
 
 ## 仕組み
 
