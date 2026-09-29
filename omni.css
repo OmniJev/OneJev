@@ -8,6 +8,12 @@
   src: url(fonts/PressStart2P-Regular.ttf) format("truetype");
   font-display: swap;
 }
+@font-face {
+  font-family: "Fusion Pixel";
+  src: url(fonts/FusionPixel-12px-zh.woff2) format("woff2");
+  font-display: swap;
+  unicode-range: U+2E80-2FDF, U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+FF00-FFEF;
+}
 :root {
   --ink: #1e1e1e;
   --paper: #fefefe;
@@ -21,12 +27,14 @@
   --win: #fefefe;
   --mono:
     "Departure Mono",
+    "Fusion Pixel",
     ui-monospace,
     Menlo,
     monospace;
   --arc:
     "Press Start 2P",
     "Departure Mono",
+    "Fusion Pixel",
     monospace;
   --dots: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Crect x='8' y='8' width='2' height='2' fill='%23dcdcdc'/%3E%3C/svg%3E");
   --dots-pink: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Crect x='8' y='8' width='2' height='2' fill='%23eaa6cb'/%3E%3C/svg%3E");
@@ -149,12 +157,49 @@ pre,
   background: var(--accent2);
   color: var(--ink);
 }
-@media (max-width: 860px) {
+.top .end a.lang {
+  margin-left: 10px;
+  border: 2px solid var(--paper);
+  padding: 6px 8px 5px;
+}
+@media (max-width: 1340px) {
+  .top .end a[href^="https://github.com"],
+  .top .end a[href="https://huggingface.co/OmniJev"] {
+    display: none;
+  }
+}
+@media (max-width: 1120px) {
   .top .mid {
     display: none;
   }
   .top .end {
     margin-left: auto;
+  }
+}
+@media (max-width: 560px) {
+  .top {
+    gap: 8px;
+  }
+  .top nav a:not(.brand) {
+    white-space: nowrap;
+    padding: 8px 7px 7px;
+  }
+  .top .end a.lang {
+    margin-left: 8px;
+    padding: 6px 6px 5px;
+  }
+}
+@media (max-width: 360px) {
+  .top .brand {
+    font-size: 11px;
+    gap: 6px;
+  }
+  .top .brand .eye-svg {
+    width: 24px;
+    height: 18px;
+  }
+  .top nav a:not(.brand) {
+    padding: 8px 5px 7px;
   }
 }
 .win {
@@ -485,6 +530,9 @@ td code,
   font: 400 15px/1.5 var(--arc);
   color: var(--ink);
   text-shadow: 2px 2px 0 var(--second);
+}
+html[lang="zh-CN"] .hero .hi {
+  font-size: 20px;
 }
 .hero .btns {
   display: flex;

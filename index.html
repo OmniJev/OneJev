@@ -14,8 +14,8 @@
 
 <header class="top">
   <nav><a class="brand" href="#top"><span id="nav-eye"></span>OneJev</a></nav>
-  <nav class="mid"><a href="#live">Live</a><a href="#demos">Demos</a><a href="#results">Results</a><a href="#start">Quick Start</a><a href="#how">How It Works</a><a href="video.html">Video</a></nav>
-  <nav class="end"><a href="https://huggingface.co/spaces/BradNLP/OneJev">Demo</a><a href="https://github.com/OmniJev/OneJev">GitHub</a><a href="https://huggingface.co/OmniJev">Hugging Face</a><a class="dark" href="https://huggingface.co/collections/OmniJev/onejev">Weights</a></nav>
+  <nav class="mid"><a href="#live" data-zh="实时">Live</a><a href="#demos" data-zh="演示">Demos</a><a href="#results" data-zh="结果">Results</a><a href="#start" data-zh="快速上手">Quick Start</a><a href="#how" data-zh="原理">How It Works</a><a href="video.html" data-zh="视频">Video</a></nav>
+  <nav class="end"><a href="https://huggingface.co/spaces/BradNLP/OneJev" data-zh="在线试用">Demo</a><a href="https://github.com/OmniJev/OneJev">GitHub</a><a href="https://huggingface.co/OmniJev">Hugging Face</a><a class="dark" href="https://huggingface.co/collections/OmniJev/onejev" data-zh="权重">Weights</a></nav>
 </header>
 
 <section class="band-paper" id="top">
@@ -24,8 +24,8 @@
       <div class="logo-eye" id="logo-eye" aria-hidden="true"></div>
       <div>
         <h1>OneJev</h1>
-        <p class="sub" id="banner-sub">a Multimodal System One Decision Model</p>
-        <p class="meta"><span>screens, photos, video, text</span> <b>&gt;</b> <span>calibrated answers</span><br><span>0.8B / 4B / 9B / 27B</span> &nbsp; <span>one forward pass</span> &nbsp; <span>Apache-2.0</span></p>
+        <p class="sub" id="banner-sub" data-zh="多模态 System One 决策模型">a Multimodal System One Decision Model</p>
+        <p class="meta" data-zh-html="&lt;span&gt;屏幕、照片、视频、文本&lt;/span&gt; &lt;b&gt;&amp;gt;&lt;/b&gt; &lt;span&gt;校准过的答案&lt;/span&gt;&lt;br&gt;&lt;span&gt;0.8B / 4B / 9B / 27B&lt;/span&gt; &amp;nbsp; &lt;span&gt;一次前向&lt;/span&gt; &amp;nbsp; &lt;span&gt;Apache-2.0&lt;/span&gt;"><span>screens, photos, video, text</span> <b>&gt;</b> <span>calibrated answers</span><br><span>0.8B / 4B / 9B / 27B</span> &nbsp; <span>one forward pass</span> &nbsp; <span>Apache-2.0</span></p>
       </div>
     </div>
   </div>
@@ -33,17 +33,17 @@
     <div class="win">
       <div class="win-t"><span class="t">readme.txt</span></div>
       <div class="win-b">
-        <p class="hi">Show it a screen. Ask it anything typed.</p>
-        <p style="margin-top:10px">Send a state with screenshots, photos or video and a set of typed questions. Get one calibrated probability per option back, in one forward pass.</p>
+        <p class="hi" data-zh="给它看一眼屏幕，再问它一组带类型的问题。">Show it a screen. Ask it anything typed.</p>
+        <p style="margin-top:10px" data-zh="发一个带截图、照片或视频的状态，再附上一组带类型的问题。一次前向，每个选项拿回一个校准过的概率。">Send a state with screenshots, photos or video and a set of typed questions. Get one calibrated probability per option back, in one forward pass.</p>
         <div class="btns">
-          <a class="btn" href="#start">Run it locally</a>
-          <a class="btn light" href="#live">Watch it decide</a>
+          <a class="btn" href="#start" data-zh="本地运行">Run it locally</a>
+          <a class="btn light" href="#live" data-zh="看它做决策">Watch it decide</a>
         </div>
       </div>
     </div>
     <div class="win">
       <div class="win-t"><span class="t">news.txt</span></div>
-      <div class="win-b news-list" id="news"><p>Loading results.json <span class="cursor"></span></p></div>
+      <div class="win-b news-list" id="news" data-zh-html="&lt;p&gt;正在读取 results.json &lt;span class=&quot;cursor&quot;&gt;&lt;/span&gt;&lt;/p&gt;"><p>Loading results.json <span class="cursor"></span></p></div>
     </div>
   </div>
 </section>
@@ -62,20 +62,20 @@
 <section class="band-paper">
   <div class="wrap">
     <div class="spacer-l"></div>
-    <div class="corners"><h2 class="display mid">It Reads The Screen Once And Answers Every Question</h2></div>
+    <div class="corners"><h2 class="display mid" data-zh="屏幕只读一次，所有问题一起回答">It Reads The Screen Once And Answers Every Question</h2></div>
     <div class="spacer-m"></div>
     <div class="cols">
-      <div><span class="px">it looks</span><p id="col-looks">A state can hold screenshots, photos and video frames, next to the text an agent or a pipeline already has.</p></div>
-      <div><span class="px">one pass</span><p>Each question gets one calibrated distribution over its options, read off the model's own logits in a single forward pass. Nothing is generated.</p></div>
-      <div><span class="px">same api</span><p>The server speaks TypeSafe's System One API. The official <code>typesafe-sdk</code> works after changing one environment variable, and a request adds media with one extra field.</p></div>
+      <div><span class="px" data-zh="会看">it looks</span><p id="col-looks" data-zh="状态里可以放截图、照片和视频帧，和 agent 或流水线本来就有的文本放在一起。">A state can hold screenshots, photos and video frames, next to the text an agent or a pipeline already has.</p></div>
+      <div><span class="px" data-zh="一次前向">one pass</span><p data-zh="每个问题在一次前向里拿到选项上的一个校准分布，直接从模型自己的 logits 读出，不生成任何文字。">Each question gets one calibrated distribution over its options, read off the model's own logits in a single forward pass. Nothing is generated.</p></div>
+      <div><span class="px" data-zh="同一个 API">same api</span><p data-zh-html="服务端说的是 TypeSafe 的 System One API。官方 &lt;code&gt;typesafe-sdk&lt;/code&gt; 改一个环境变量就能用，请求里多加一个字段就能带上媒体。">The server speaks TypeSafe's System One API. The official <code>typesafe-sdk</code> works after changing one environment variable, and a request adds media with one extra field.</p></div>
     </div>
   </div>
 
   <div class="wrap wide" id="streams-wrap">
     <div class="spacer-l" id="live"></div>
     <div class="corners">
-      <h2 class="display mid">Live Decisions On The Test Set</h2>
-      <p class="foot-note">Rows drawn at random from the test set, with the probabilities OneJev-27B gave them. Hover a window to hold it, click the picture to pin it.</p>
+      <h2 class="display mid" data-zh="测试集上的实时决策">Live Decisions On The Test Set</h2>
+      <p class="foot-note" data-zh="从测试集随机抽题，配上 OneJev-27B 给出的概率。鼠标停在窗口上会暂停，点图片可以固定。">Rows drawn at random from the test set, with the probabilities OneJev-27B gave them. Hover a window to hold it, click the picture to pin it.</p>
     </div>
     <div class="spacer-m"></div>
     <div class="streams" id="streams"></div>
@@ -87,12 +87,12 @@
   <div class="wrap">
     <div class="spacer-l"></div>
     <div class="corners" id="speed">
-      <h2 class="display mid" id="speed-title">Ten Questions, One Look</h2>
+      <h2 class="display mid" id="speed-title" data-zh="看一眼，答十题">Ten Questions, One Look</h2>
       <p class="foot-note" id="speed-note"></p>
     </div>
     <div class="spacer-m"></div>
     <div class="desk" id="race-desk">
-      <div class="desk-head"><span class="tag">one request vs ten</span><div class="desk-tabs" id="race-tabs"></div></div>
+      <div class="desk-head"><span class="tag" data-zh="一次请求 vs 十次">one request vs ten</span><div class="desk-tabs" id="race-tabs"></div></div>
       <div class="race" id="race"></div>
     </div>
     <div class="race-foot" id="race-foot"></div>
@@ -103,21 +103,21 @@
 <section class="band-paper" id="demos">
   <div class="wrap">
     <div class="spacer-l"></div>
-    <div class="sec-head"><h2>Watch An Agent</h2></div>
-    <p class="lead">Five recorded agent runs from the test set, on a phone and on a desktop. Each run is cut where the question is asked, so the model sees only the steps and screens up to that point.</p>
+    <div class="sec-head"><h2 data-zh="盯住一个 Agent">Watch An Agent</h2></div>
+    <p class="lead" data-zh="测试集里录下的五次 agent 运行，有手机也有桌面。每次运行都在提问的那一步截断，模型只看得到截断之前的步骤和屏幕。">Five recorded agent runs from the test set, on a phone and on a desktop. Each run is cut where the question is asked, so the model sees only the steps and screens up to that point.</p>
     <div class="spacer-s"></div>
     <div class="desk" id="monitor-desk">
-      <div class="desk-head"><span class="tag">agent monitor</span><div class="desk-tabs" id="monitor-tabs"></div></div>
+      <div class="desk-head"><span class="tag" data-zh="agent 监控">agent monitor</span><div class="desk-tabs" id="monitor-tabs"></div></div>
       <div id="monitor"></div>
     </div>
-    <div class="caption"><p id="monitor-cap">Qwen3.8-27B is the network OneJev-27B started from, asked the same question in the same way before training.</p></div>
+    <div class="caption"><p id="monitor-cap" data-zh="Qwen3.8-27B 是 OneJev-27B 训练前的起点，用同样的方式问了同样的问题。">Qwen3.8-27B is the network OneJev-27B started from, asked the same question in the same way before training.</p></div>
     <div class="spacer-l"></div>
 
-    <div class="sec-head"><h2>Pick The Next Click</h2></div>
-    <p class="lead">A web agent is halfway through a task on a real website. The question lists fifty elements on the page, and the model gives each one a probability of being the next thing to click.</p>
+    <div class="sec-head"><h2 data-zh="猜下一次点击">Pick The Next Click</h2></div>
+    <p class="lead" data-zh="一个网页 agent 在真实网站上做任务，做到一半。问题列出页面上的五十个元素，模型给每个元素一个概率，表示它是下一次点击的可能性。">A web agent is halfway through a task on a real website. The question lists fifty elements on the page, and the model gives each one a probability of being the next thing to click.</p>
     <div class="spacer-s"></div>
     <div class="desk" id="click-desk">
-      <div class="desk-head"><span class="tag">next click</span><div class="desk-tabs" id="click-tabs"></div></div>
+      <div class="desk-head"><span class="tag" data-zh="下一次点击">next click</span><div class="desk-tabs" id="click-tabs"></div></div>
       <div id="click"></div>
     </div>
     <div class="spacer-l"></div>
@@ -127,20 +127,20 @@
 <section class="band-grey">
   <div class="wrap">
     <div class="spacer-l"></div>
-    <div class="sec-head"><h2>Follow A Recipe</h2></div>
-    <p class="lead" id="recipe-lead">Long cooking videos, sampled from the start of the recording up to the moment of the question. OneJev says which step is happening now, which one comes next, and how far along the cook is.</p>
+    <div class="sec-head"><h2 data-zh="跟着菜谱走">Follow A Recipe</h2></div>
+    <p class="lead" id="recipe-lead" data-zh="很长的做菜视频，从录制开始一直采样到提问那一刻。OneJev 回答现在在做哪一步、下一步是什么、整道菜做到了几成。">Long cooking videos, sampled from the start of the recording up to the moment of the question. OneJev says which step is happening now, which one comes next, and how far along the cook is.</p>
     <div class="spacer-s"></div>
     <div class="desk" id="recipe-desk">
-      <div class="desk-head"><span class="tag">recipe watch</span><div class="desk-tabs" id="recipe-tabs"></div></div>
+      <div class="desk-head"><span class="tag" data-zh="菜谱跟踪">recipe watch</span><div class="desk-tabs" id="recipe-tabs"></div></div>
       <div id="recipe"></div>
     </div>
     <div class="spacer-l"></div>
 
-    <div class="sec-head"><h2>Name The Clip</h2></div>
-    <p class="lead">Short clips with questions that need motion to answer: which of 174 hand actions, which of 47 dives, what caused a collision.</p>
+    <div class="sec-head"><h2 data-zh="认出这段视频">Name The Clip</h2></div>
+    <p class="lead" data-zh="短视频片段，问题得看动作才答得出来。174 种手部动作里是哪一种，47 种跳水里是哪一种，碰撞是谁引起的。">Short clips with questions that need motion to answer: which of 174 hand actions, which of 47 dives, what caused a collision.</p>
     <div class="spacer-s"></div>
     <div class="desk" id="clip-desk">
-      <div class="desk-head"><span class="tag">clip namer</span><div class="desk-tabs" id="clip-tabs"></div></div>
+      <div class="desk-head"><span class="tag" data-zh="片段识别">clip namer</span><div class="desk-tabs" id="clip-tabs"></div></div>
       <div id="clip"></div>
     </div>
     <div class="spacer-l"></div>
@@ -150,11 +150,11 @@
 <section class="band-paper">
   <div class="wrap">
     <div class="spacer-l"></div>
-    <div class="sec-head"><h2>Look At Photos</h2></div>
-    <p class="lead">Fine-grained questions with up to two hundred options, a satellite tile and a map. Every card is a row of the test set.</p>
+    <div class="sec-head"><h2 data-zh="看照片">Look At Photos</h2></div>
+    <p class="lead" data-zh="细粒度问题，选项最多两百个，还有一张卫星图和一张地图。每张卡片都是测试集里的一行。">Fine-grained questions with up to two hundred options, a satellite tile and a map. Every card is a row of the test set.</p>
     <div class="spacer-s"></div>
     <div class="desk" id="photo-desk">
-      <div class="desk-head"><span class="tag">photo desk</span></div>
+      <div class="desk-head"><span class="tag" data-zh="照片桌">photo desk</span></div>
       <div class="photo-grid" id="photos"></div>
     </div>
     <div class="spacer-l"></div>
@@ -164,7 +164,7 @@
 <section class="band-grey">
   <div class="wrap">
     <div class="spacer-l"></div>
-    <div class="corners"><h2 class="display mid" id="cal-title">When It Says 0.9, It Is Right Nine Times In Ten</h2></div>
+    <div class="corners"><h2 class="display mid" id="cal-title" data-zh="它说 0.9 的时候，十次里对九次">When It Says 0.9, It Is Right Nine Times In Ten</h2></div>
     <div class="spacer-m"></div>
     <div class="res-2">
       <div class="win">
@@ -172,7 +172,7 @@
         <div class="win-b chart" id="cal-chart"></div>
       </div>
       <div class="win">
-        <div class="win-t"><span class="t">what the chart says</span></div>
+        <div class="win-t"><span class="t" data-zh="图里说了什么">what the chart says</span></div>
         <div class="win-b" id="cal-text"></div>
       </div>
     </div>
@@ -184,7 +184,7 @@
   <div class="wrap">
     <div class="spacer-l"></div>
     <div class="corners">
-      <h2 class="display mid" id="res-title">Results</h2>
+      <h2 class="display mid" id="res-title" data-zh="结果">Results</h2>
       <p class="foot-note" id="res-note"></p>
     </div>
     <div class="spacer-m"></div>
@@ -197,22 +197,22 @@
         <div class="win-t"><span class="t" id="t-test">results.table</span></div>
         <div class="win-b">
           <p class="body" id="test-text"></p>
-          <p class="body">DecisionBench is scored state-macro as on its card. TypeSafe uses the 354 rows of TypeSafe's public evaluation that Jev answered, with Jev's published answers as its row. MMBench (dev) and MMStar check that general vision is kept. The best cell in each row is magenta, the runner-up pale pink.</p>
+          <p class="body" data-zh="DecisionBench 按它卡片上的方式做 state-macro 计分。TypeSafe 一行用的是 TypeSafe 公开评测里 Jev 答过的 354 行，Jev 那一列就是它公布的答案。MMBench（dev）和 MMStar 用来检查通用视觉能力有没有保住。每行最好的格子是品红色，第二名是浅粉色。">DecisionBench is scored state-macro as on its card. TypeSafe uses the 354 rows of TypeSafe's public evaluation that Jev answered, with Jev's published answers as its row. MMBench (dev) and MMStar check that general vision is kept. The best cell in each row is magenta, the runner-up pale pink.</p>
           <div class="ptable-wrap" style="margin-top:16px"><table class="ptable" id="ptable"></table></div>
         </div>
       </div>
       <div class="res-2">
         <div class="win">
-          <div class="win-t"><span class="t">before and after training</span></div>
+          <div class="win-t"><span class="t" data-zh="训练前后">before and after training</span></div>
           <div class="win-b" id="size-panel"></div>
         </div>
         <div class="win">
-          <div class="win-t"><span class="t">by kind of input</span></div>
+          <div class="win-t"><span class="t" data-zh="按输入类型">by kind of input</span></div>
           <div class="win-b" id="group-panel"></div>
         </div>
       </div>
       <div class="win">
-        <div class="win-t"><span class="t">models that write out their reasoning</span></div>
+        <div class="win-t"><span class="t" data-zh="先写出推理的模型">models that write out their reasoning</span></div>
         <div class="win-b"><p class="body" id="think-text"></p><div class="tbl-wrap" style="margin-top:14px"><table class="res" id="tbl-think"></table></div></div>
       </div>
     </div>
@@ -223,7 +223,7 @@
 <section class="band-grey" id="start">
   <div class="wrap">
     <div class="spacer-l"></div>
-    <div class="sec-head"><h2>Quick Start</h2></div>
+    <div class="sec-head"><h2 data-zh="快速上手">Quick Start</h2></div>
     <div class="docs">
       <div class="win full">
         <div class="win-t"><span class="t">terminal</span></div>
@@ -238,11 +238,11 @@ qev serve --gguf mradermacher/OneJev-4B-GGUF:Q8_0 --port 8000</pre></div>
       </div>
       <div class="win">
         <div class="win-t"><span class="t">sdk.txt</span></div>
-        <div class="win-b"><p class="body">Requests without media are plain System One requests, and the official SDK works against the same server with <code>TYPESAFE_BASE_URL=http://localhost:8000</code>.</p></div>
+        <div class="win-b"><p class="body" data-zh-html="不带媒体的请求就是普通的 System One 请求，官方 SDK 设置 &lt;code&gt;TYPESAFE_BASE_URL=http://localhost:8000&lt;/code&gt; 后就能连同一个服务。">Requests without media are plain System One requests, and the official SDK works against the same server with <code>TYPESAFE_BASE_URL=http://localhost:8000</code>.</p></div>
       </div>
       <div class="win">
         <div class="win-t"><span class="t">gguf.txt</span></div>
-        <div class="win-b"><p class="body">The same server runs GGUF files on llama.cpp without PyTorch, images included. On 1,234 test questions the 4B at Q8_0 gives the PyTorch server's answer 99.1% of the time.</p></div>
+        <div class="win-b"><p class="body" data-zh-html="同一个服务也能在 llama.cpp 上跑 GGUF，不需要 PyTorch，图片也支持。在 1,234 道测试题上，Q8_0 的 4B 有 99.1% 的答案和 PyTorch 服务一致。">The same server runs GGUF files on llama.cpp without PyTorch, images included. On 1,234 test questions the 4B at Q8_0 gives the PyTorch server's answer 99.1% of the time.</p></div>
       </div>
       <div class="win full">
         <div class="win-t"><span class="t">example.py</span></div>
@@ -258,9 +258,9 @@ r = c.system_one(
                               {"click": "click an element", "type": "type text", "scroll": "scroll", "stop": "stop"}),
                "progress": Score("How far along is the task?", ["not started", "halfway", "almost done", "done"])},
 )
-r.answers["done"].noul                  <span class="c"># probability of yes</span>
-r.answers["next"].probabilities         <span class="c"># one probability per option</span>
-r.answers["progress"].score             <span class="c"># expected level</span></pre></div>
+r.answers["done"].noul                  <span class="c" data-zh="# 回答 yes 的概率"># probability of yes</span>
+r.answers["next"].probabilities         <span class="c" data-zh="# 每个选项一个概率"># one probability per option</span>
+r.answers["progress"].score             <span class="c" data-zh="# 期望等级"># expected level</span></pre></div>
       </div>
     </div>
     <div class="spacer-l"></div>
@@ -270,16 +270,27 @@ r.answers["progress"].score             <span class="c"># expected level</span><
 <section class="band-paper" id="how">
   <div class="wrap">
     <div class="spacer-l"></div>
-    <div class="sec-head"><h2>How It Works</h2></div>
+    <div class="sec-head"><h2 data-zh="原理">How It Works</h2></div>
     <div class="docs">
       <div>
-        <p class="body">The prompt is the state followed by one question and its lettered options. Every question of a request shares the state, so the state is prefilled once, the cache is forked, and each question runs as a short branch. All branches go through the model together. The answer is the softmax over the logits of the option letters at the last position, computed in float32.</p>
-        <p class="body">Images and video frames sit inside the state, so the vision encoder also runs once per request. Qwen's vision models place tokens with multimodal RoPE, where text after an image continues from the image's largest position. Every branch token gets the position it would have had in the full prompt, and the branches reproduce the full-prompt probabilities: to 1e-5 in float32, and to at most 0.016 in bfloat16 over 229 real test questions.</p>
-        <p class="body">The server checks this on a synthetic image at load time and refuses to start if a future library version breaks it.</p>
+        <p class="body" data-zh="提示词由状态加一个问题和它带字母编号的选项组成。一个请求里的所有问题共用同一个状态，所以状态只 prefill 一次，然后复制缓存，每个问题作为一条短分支跑，所有分支一起过模型。答案是最后一个位置上各选项字母 logits 的 softmax，用 float32 计算。">The prompt is the state followed by one question and its lettered options. Every question of a request shares the state, so the state is prefilled once, the cache is forked, and each question runs as a short branch. All branches go through the model together. The answer is the softmax over the logits of the option letters at the last position, computed in float32.</p>
+        <p class="body" data-zh="图片和视频帧都在状态里，所以视觉编码器每个请求也只跑一次。Qwen 的视觉模型用多模态 RoPE 编位置，图片后面的文字从图片的最大位置接着往下数。每个分支里的 token 都拿到它在完整提示词里本该有的位置，分支算出的概率和完整提示词一致：float32 下误差在 1e-5 以内，bfloat16 下在 229 道真实测试题上最多差 0.016。">Images and video frames sit inside the state, so the vision encoder also runs once per request. Qwen's vision models place tokens with multimodal RoPE, where text after an image continues from the image's largest position. Every branch token gets the position it would have had in the full prompt, and the branches reproduce the full-prompt probabilities: to 1e-5 in float32, and to at most 0.016 in bfloat16 over 229 real test questions.</p>
+        <p class="body" data-zh="服务启动时会用一张合成图检查这一点，以后哪个库版本把它弄坏了，服务就拒绝启动。">The server checks this on a synthetic image at load time and refuses to start if a future library version breaks it.</p>
       </div>
       <div class="win">
-        <div class="win-t"><span class="t">one request</span></div>
-        <div class="win-b flush"><pre class="code">state: text + &lt;image:1&gt; + &lt;video:1&gt;
+        <div class="win-t"><span class="t" data-zh="一次请求">one request</span></div>
+        <div class="win-b flush" data-zh-html="&lt;pre class=&quot;code&quot;&gt;state: text + &amp;lt;image:1&amp;gt; + &amp;lt;video:1&amp;gt;
+  |
+  |  视觉编码器，一次
+  |  prefill，一次
+  v
+ [ 共享缓存 ]
+  |-- 问题 1 + 选项 A..D -&amp;gt; softmax(A..D)
+  |-- 问题 2 + 选项 A..B -&amp;gt; softmax(A..B)
+  |-- ...
+  &#x27;-- 问题 N + 选项 A..K -&amp;gt; softmax(A..K)
+
+所有分支一个 batch，不解码任何 token&lt;/pre&gt;"><pre class="code">state: text + &lt;image:1&gt; + &lt;video:1&gt;
   |
   |  vision encoder, once
   |  prefill, once
@@ -298,12 +309,14 @@ every branch in one batch, nothing decoded</pre></div>
     <div class="sec-head"><h2>API</h2></div>
     <div class="docs">
       <div>
-        <p class="body"><code>POST /v1/systemone</code> takes TypeSafe's request (<code>state</code>, <code>questions</code>, <code>model</code>) plus an optional <code>media</code> list. The state refers to each item once, in order, as <code>&lt;image:N&gt;</code> or <code>&lt;video:N&gt;</code>.</p>
-        <p class="body">Questions are <code>noul</code> (yes or no), <code>choice</code> (up to 255 options) and <code>score</code> (up to 10 ordered levels), answered in TypeSafe's response format. A request whose placeholders do not match its media, or that sends a local path to a server started without <code>--media-root</code>, gets a <code>422</code>.</p>
+        <p class="body" data-zh-html="&lt;code&gt;POST /v1/systemone&lt;/code&gt; 接收 TypeSafe 的请求（&lt;code&gt;state&lt;/code&gt;、&lt;code&gt;questions&lt;/code&gt;、&lt;code&gt;model&lt;/code&gt;），外加一个可选的 &lt;code&gt;media&lt;/code&gt; 列表。状态里按顺序引用每个媒体一次，写成 &lt;code&gt;&amp;lt;image:N&amp;gt;&lt;/code&gt; 或 &lt;code&gt;&amp;lt;video:N&amp;gt;&lt;/code&gt;。"><code>POST /v1/systemone</code> takes TypeSafe's request (<code>state</code>, <code>questions</code>, <code>model</code>) plus an optional <code>media</code> list. The state refers to each item once, in order, as <code>&lt;image:N&gt;</code> or <code>&lt;video:N&gt;</code>.</p>
+        <p class="body" data-zh-html="问题分三种：&lt;code&gt;noul&lt;/code&gt;（是或否）、&lt;code&gt;choice&lt;/code&gt;（最多 255 个选项）和 &lt;code&gt;score&lt;/code&gt;（最多 10 个有序等级），按 TypeSafe 的响应格式返回。占位符和媒体对不上的请求，或者向没开 &lt;code&gt;--media-root&lt;/code&gt; 的服务发送本地路径的请求，会收到 &lt;code&gt;422&lt;/code&gt;。">Questions are <code>noul</code> (yes or no), <code>choice</code> (up to 255 options) and <code>score</code> (up to 10 ordered levels), answered in TypeSafe's response format. A request whose placeholders do not match its media, or that sends a local path to a server started without <code>--media-root</code>, gets a <code>422</code>.</p>
       </div>
       <div class="win">
-        <div class="win-t"><span class="t">media items</span></div>
-        <div class="win-b"><table class="plain">
+        <div class="win-t"><span class="t" data-zh="媒体项">media items</span></div>
+        <div class="win-b"><table class="plain" data-zh-html="&lt;tr&gt;&lt;th&gt;类型&lt;/th&gt;&lt;th&gt;字段&lt;/th&gt;&lt;/tr&gt;
+          &lt;tr&gt;&lt;td&gt;image&lt;/td&gt;&lt;td&gt;&lt;code&gt;{&quot;type&quot;: &quot;image&quot;, &quot;url&quot;: ...}&lt;/code&gt;、&lt;code&gt;{&quot;type&quot;: &quot;image&quot;, &quot;data&quot;: ...}&lt;/code&gt;（base64 或 data URI），或 &lt;code&gt;--media-root&lt;/code&gt; 下的 &lt;code&gt;&quot;path&quot;&lt;/code&gt;&lt;/td&gt;&lt;/tr&gt;
+          &lt;tr&gt;&lt;td&gt;video&lt;/td&gt;&lt;td&gt;&lt;code&gt;{&quot;type&quot;: &quot;video&quot;, &quot;frames&quot;: [...], &quot;fps&quot;: 2.0}&lt;/code&gt;，帧需要提前抽好；&lt;code&gt;fps&lt;/code&gt; 决定模型看到的时间戳&lt;/td&gt;&lt;/tr&gt;">
           <tr><th>item</th><th>fields</th></tr>
           <tr><td>image</td><td><code>{"type": "image", "url": ...}</code>, <code>{"type": "image", "data": ...}</code> with base64 or a data URI, or <code>"path"</code> under <code>--media-root</code></td></tr>
           <tr><td>video</td><td><code>{"type": "video", "frames": [...], "fps": 2.0}</code>, frames extracted beforehand; <code>fps</code> sets the timestamps the model sees</td></tr>
@@ -312,14 +325,14 @@ every branch in one batch, nothing decoded</pre></div>
     </div>
 
     <div class="spacer-l"></div>
-    <div class="sec-head"><h2>Training</h2></div>
+    <div class="sec-head"><h2 data-zh="训练">Training</h2></div>
     <div class="docs">
       <div>
-        <p class="body" id="train-text">OneJev comes in four sizes, full-parameter fine-tunes of Qwen3.5-0.8B, Qwen3.5-4B, Qwen3.5-9B and Qwen3.8-27B, all trained on the same questions. Answers come from what actually happened (whether the run succeeded, what the agent did next, which step of the recipe is on screen) or from each dataset's own labels; part of the business-rule set was labelled by Qwen3.5-27B.</p>
-        <p class="body">One epoch with the vision tower frozen, learning rate 5e-6 with cosine decay, 64 questions per step, cross-entropy plus an equal-weight Brier term on the option letters. The 9B and 27B runs shard weights, gradients and optimizer state with FSDP. 589 training questions that shared a task with a test question were removed before training.</p>
+        <p class="body" id="train-text" data-zh="OneJev 有四个尺寸，分别由 Qwen3.5-0.8B、Qwen3.5-4B、Qwen3.5-9B 和 Qwen3.8-27B 全参数微调而来，全都用同一批问题训练。答案来自真实发生的事情（运行有没有成功、agent 下一步做了什么、屏幕上是菜谱的哪一步），或者来自各数据集自带的标签；业务规则集里有一部分由 Qwen3.5-27B 标注。">OneJev comes in four sizes, full-parameter fine-tunes of Qwen3.5-0.8B, Qwen3.5-4B, Qwen3.5-9B and Qwen3.8-27B, all trained on the same questions. Answers come from what actually happened (whether the run succeeded, what the agent did next, which step of the recipe is on screen) or from each dataset's own labels; part of the business-rule set was labelled by Qwen3.5-27B.</p>
+        <p class="body" data-zh="训练一个 epoch，冻结视觉塔，学习率 5e-6 余弦衰减，每步 64 道题，损失是选项字母上的交叉熵加一个等权重的 Brier 项。9B 和 27B 用 FSDP 切分权重、梯度和优化器状态。和测试题共用同一个任务的 589 道训练题在训练前删掉了。">One epoch with the vision tower frozen, learning rate 5e-6 with cosine decay, 64 questions per step, cross-entropy plus an equal-weight Brier term on the option letters. The 9B and 27B runs shard weights, gradients and optimizer state with FSDP. 589 training questions that shared a task with a test question were removed before training.</p>
       </div>
       <div class="win">
-        <div class="win-t"><span class="t">training mix</span></div>
+        <div class="win-t"><span class="t" data-zh="训练数据构成">training mix</span></div>
         <div class="win-b" style="overflow-x:auto"><table class="plain" id="tbl-mix"></table></div>
       </div>
     </div>
@@ -332,7 +345,7 @@ every branch in one batch, nothing decoded</pre></div>
     <div id="foot-eye" aria-hidden="true"></div>
     <div class="win">
       <div class="win-t"><span class="t">onejev.txt</span></div>
-      <div class="win-b">OneJev, version 1.0<br>Apache-2.0, like the Qwen bases<br><a href="https://github.com/OmniJev/OneJev">github.com/OmniJev/OneJev</a><br><a href="video.html">the promo video</a></div>
+      <div class="win-b" data-zh-html="OneJev 1.0 版&lt;br&gt;Apache-2.0，和 Qwen 底座一样&lt;br&gt;&lt;a href=&quot;https://github.com/OmniJev/OneJev&quot;&gt;github.com/OmniJev/OneJev&lt;/a&gt;&lt;br&gt;&lt;a href=&quot;video.html&quot;&gt;宣传视频&lt;/a&gt;">OneJev, version 1.0<br>Apache-2.0, like the Qwen bases<br><a href="https://github.com/OmniJev/OneJev">github.com/OmniJev/OneJev</a><br><a href="video.html">the promo video</a></div>
     </div>
   </div>
 </footer>
