@@ -143,10 +143,11 @@ torchrun --nproc-per-node 4 -m train.sft --config train/configs/onejev_4b_full.y
 
 ## Friendly Links
 
-- [LINUX DO](https://linux.do), the community where we share OneJev
-- [Jev](https://typesafe.ai), the official System One model by TypeSafe AI
-- [Awesome JEV](https://github.com/OmniJev/awesome-jev-gallery), our curated list of Jev work, with a [website](https://omnijev.github.io/awesome-jev-gallery/)
-- [PlayJev](https://github.com/OmniJev/PlayJev), a small model that plays ten browser games from pixels
+- [LINUX DO](https://linux.do)
+- [Jev](https://typesafe.ai)
+- [Awesome JEV](https://github.com/OmniJev/awesome-jev-gallery)
+- [Awesome JEV Website](https://omnijev.github.io/awesome-jev-gallery/)
+- [PlayJev](https://github.com/OmniJev/PlayJev)
 
 ## License
 
