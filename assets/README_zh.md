@@ -127,6 +127,13 @@ torchrun --nproc-per-node 4 -m train.sft --config train/configs/onejev_4b_full.y
 }
 ```
 
+## 友情链接
+
+- [LINUX DO](https://linux.do)，我们分享 OneJev 的社区
+- [Jev](https://typesafe.ai)，TypeSafe AI 官方的 System One 模型
+- [Awesome JEV](https://github.com/OmniJev/awesome-jev-gallery)，我们整理的 Jev 资源列表，另有[网页版](https://omnijev.github.io/awesome-jev-gallery/)
+- [PlayJev](https://github.com/OmniJev/PlayJev)，看像素玩十款网页游戏的小模型
+
 ## 许可证
 
 [Apache 2.0](../LICENSE)
