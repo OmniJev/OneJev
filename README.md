@@ -16,16 +16,14 @@
 </p>
 <p align="center">
   <a href="https://huggingface.co/datasets/OmniJev/OneJev-Data"><img alt="Data" src="https://img.shields.io/badge/Data-OneJev--Data-FF9D00?style=flat-square&logo=huggingface&logoColor=white"></a>
-  <a href="#api"><img alt="API" src="https://img.shields.io/badge/API-System_One-009688?style=flat-square&logo=fastapi&logoColor=white"></a>
+  <a href="examples/request.json"><img alt="API" src="https://img.shields.io/badge/API-System_One-009688?style=flat-square&logo=fastapi&logoColor=white"></a>
   <a href="https://www.python.org"><img alt="Python" src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white"></a>
   <a href="https://pytorch.org"><img alt="PyTorch" src="https://img.shields.io/badge/PyTorch-2.6%2B-EE4C2C?style=flat-square&logo=pytorch&logoColor=white"></a>
   <a href="https://github.com/huggingface/transformers"><img alt="Transformers" src="https://img.shields.io/badge/Transformers-5%2B-FFD21E?style=flat-square&logo=huggingface&logoColor=black"></a>
 </p>
 
-We propose OneJev, a multimodal System One decision model. Give it a screenshot, a photo, a video or plain text
-along with a few typed questions, and it returns a calibrated probability for every option of every question in a
-single forward pass. It speaks TypeSafe's System One API, extended with images and video, and comes in four sizes,
-all trained on the same 99,193 questions drawn from real agent runs, videos and images.
+OneJev is a multimodal System One decision model. It returns calibrated probabilities for typed questions about
+screenshots, photos, videos and text in a single forward pass. Available in 0.8B, 4B, 9B and 27B.
 
 ## Results
 
@@ -43,10 +41,8 @@ all trained on the same 99,193 questions drawn from real agent runs, videos and 
   </picture>
 </p>
 
-Scores are accuracy in percent. The OneJev test set is questions from the same kinds of data as training that the
-models never saw during training. Jev 1.13's scores are its published ones, and it reads text only. We ran Jev-Omni
-and Qwen3.8-27B thinking on the same questions; the thinking model writes a few thousand words of reasoning before each
-answer, OneJev answers directly.
+Accuracy (%). The OneJev test set is held out from OneJev training. Jev 1.13 uses published text-only scores;
+Jev-Omni and Qwen3.8-27B thinking were evaluated by us.
 
 <p align="center">
   <picture>
@@ -57,10 +53,31 @@ answer, OneJev answers directly.
 
 ## Quick start
 
+Choose one backend, then run the Python example below.
+
+### Option A: PyTorch
+
+For NVIDIA GPUs. Supports text, images and video.
+
 ```bash
 pip install "qev[torch] @ git+https://github.com/OmniJev/OneJev.git"
 qev serve --model OmniJev/OneJev-4B --port 8000
 ```
+
+### Option B: llama.cpp
+
+For GGUF models. Supports text and images; use PyTorch for video. Install
+[llama.cpp](https://github.com/ggml-org/llama.cpp/blob/master/docs/install.md) first (`brew install llama.cpp` on macOS).
+
+```bash
+pip install git+https://github.com/OmniJev/OneJev.git
+qev serve --gguf mradermacher/OneJev-4B-GGUF:Q8_0 --port 8000
+```
+
+### Send a request
+
+Both backends serve the same API at `http://localhost:8000`. In another terminal, run this example with your own
+`screenshot.png`:
 
 ```python
 from qev import Client, Choice, Noul, Score
@@ -79,55 +96,47 @@ r.answers["next"].probabilities         # one probability per option
 r.answers["progress"].score             # expected level
 ```
 
-Text-only requests are plain System One requests; the official `typesafe-sdk` works with
-`TYPESAFE_BASE_URL=http://localhost:8000`. More in [examples/](examples): a screenshot, a video, curl, and the official
-SDK. [benchmarks/latency.py](benchmarks/latency.py) measures the speed chart on your own GPU.
-
-## llama.cpp
-
-OneJev also runs on llama.cpp. Install llama.cpp and point `qev serve` at a GGUF repo on Hugging Face or a local .gguf
-file.
-
-```bash
-brew install llama.cpp
-pip install git+https://github.com/OmniJev/OneJev.git
-qev serve --gguf mradermacher/OneJev-4B-GGUF:Q8_0 --port 8000
-```
-
-The API is the same, images included; video needs the PyTorch server. On 1,234 test questions the 4B GGUF gives the same
-answer as the PyTorch server 99.8% of the time at f16, 99.1% at Q8_0 and 93.7% at Q4_K_M, and accuracy moves by at most
-0.2 points. GGUF files for every size are on Hugging Face, made by mradermacher:
-[0.8B](https://huggingface.co/mradermacher/OneJev-0.8B-GGUF), [4B](https://huggingface.co/mradermacher/OneJev-4B-GGUF),
-[9B](https://huggingface.co/mradermacher/OneJev-9B-GGUF), [27B](https://huggingface.co/mradermacher/OneJev-27B-GGUF).
-
-## How it works
-
-The state is read once, with its images and video frames, and every question runs as a short branch off that one
-read. The answer is the probability of each option letter at the last position. Ten questions about one screen cost
-little more than one.
-
-## API
-
-`POST /v1/systemone` takes TypeSafe's request plus an optional `media` list; the state points at each item as
-`<image:N>` or `<video:N>`.
-
-```text
-image   {"type": "image", "url": ...}   {"type": "image", "data": <base64>}   {"type": "image", "path": ...}
-video   {"type": "video", "frames": [<image>, ...], "fps": 2.0}
-```
+The API is compatible with TypeSafe System One. More examples: [video](examples/video.py),
+[curl](examples/curl.sh), [official TypeSafe SDK](examples/official_sdk.py).
 
 ## Training
 
-Full-parameter fine-tuning of Qwen3.5-0.8B, Qwen3.5-4B, Qwen3.5-9B and Qwen3.8-27B for one epoch, vision tower frozen.
+**Try the demo data:** [Preview 100 examples](https://huggingface.co/datasets/OmniJev/OneJev-Data/blob/main/sample/sample-100-preview.json) · [Download with images (23 MB)](https://huggingface.co/datasets/OmniJev/OneJev-Data/resolve/main/sample/sample-100.parquet).
 
-The data is on [Hugging Face](https://huggingface.co/datasets/OmniJev/OneJev-Data).
+### Prepare the data
+
+[OneJev-Data](https://huggingface.co/datasets/OmniJev/OneJev-Data) contains 94,707 of the 99,193 training questions;
+the remaining sources do not permit redistribution. Download and unpack the release:
 
 ```bash
-git clone https://github.com/OmniJev/OneJev.git && cd OneJev
+git clone https://github.com/OmniJev/OneJev.git
+cd OneJev
 pip install -e ".[train]"
-hf download OmniJev/OneJev-Data --repo-type dataset --local-dir data/onejev
+hf download OmniJev/OneJev-Data --repo-type dataset --include "data/*.parquet" --local-dir data/onejev
 python -m train.unpack data/onejev
+```
+
+This creates `data/onejev/train.jsonl` and extracts images and video frames into `data/onejev/media/`.
+
+### Fine-tune
+
+The four models fine-tune Qwen3.5-0.8B, Qwen3.5-4B, Qwen3.5-9B and Qwen3.8-27B for one epoch with the vision tower
+frozen. The configs use a learning rate of `5e-6`, a 16,384-token limit, and cross-entropy plus Brier loss over answer
+probabilities. To train the 4B model on four GPUs:
+
+```bash
 torchrun --nproc-per-node 4 -m train.sft --config train/configs/onejev_4b_full.yaml
+```
+
+Configs: [0.8B](train/configs/onejev_08b_full.yaml) · [4B](train/configs/onejev_4b_full.yaml) ·
+[9B](train/configs/onejev_9b_full.yaml) · [27B](train/configs/onejev_27b_full.yaml).
+Set `--nproc-per-node` to your GPU count; the 9B and 27B configs enable FSDP to shard model and optimizer state.
+For your own data, change `train` and `media_root` in the config.
+
+The final 4B checkpoint is saved to `train/runs/onejev_4b/final`. Start it with:
+
+```bash
+qev serve --model train/runs/onejev_4b/final --port 8000
 ```
 
 ## Citation

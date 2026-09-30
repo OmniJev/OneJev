@@ -16,13 +16,13 @@
 </p>
 <p align="center">
   <a href="https://huggingface.co/datasets/OmniJev/OneJev-Data"><img alt="Data" src="https://img.shields.io/badge/Data-OneJev--Data-FF9D00?style=flat-square&logo=huggingface&logoColor=white"></a>
-  <a href="#api"><img alt="API" src="https://img.shields.io/badge/API-System_One-009688?style=flat-square&logo=fastapi&logoColor=white"></a>
+  <a href="../examples/request.json"><img alt="API" src="https://img.shields.io/badge/API-System_One-009688?style=flat-square&logo=fastapi&logoColor=white"></a>
   <a href="https://www.python.org"><img alt="Python" src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white"></a>
   <a href="https://pytorch.org"><img alt="PyTorch" src="https://img.shields.io/badge/PyTorch-2.6%2B-EE4C2C?style=flat-square&logo=pytorch&logoColor=white"></a>
   <a href="https://github.com/huggingface/transformers"><img alt="Transformers" src="https://img.shields.io/badge/Transformers-5%2B-FFD21E?style=flat-square&logo=huggingface&logoColor=black"></a>
 </p>
 
-我们提出 OneJev，一个多模态 System One 决策模型。给它一张截图、一张照片、一段视频或一段文本，再加上几个带类型的问题，它在一次前向传播里为每个问题的每个选项给出校准后的概率。它兼容 TypeSafe 的 System One API，并扩展了图片和视频，提供四种尺寸，全部在同一批 99,193 个问题上训练，这些问题来自真实的智能体运行记录、视频和图片。
+OneJev 是一个多模态 System One 决策模型，一次前向传播即可为截图、照片、视频和文本上的带类型问题返回校准后的概率，提供 0.8B、4B、9B 和 27B 四种尺寸。
 
 ## 结果
 
@@ -40,7 +40,7 @@
   </picture>
 </p>
 
-分数是百分制准确率。OneJev 测试集的问题和训练数据同类，但所有模型在训练中都没见过。Jev 1.13 的分数取自公开结果，它只读文本。Jev-Omni 和 Qwen3.8-27B 思考模式由我们在同一批问题上测试；思考模型每次作答前要写几千字的推理，OneJev 直接给出答案。
+准确率（%）。OneJev 测试集未参与 OneJev 训练。Jev 1.13 使用公开的纯文本评测分数；Jev-Omni 和 Qwen3.8-27B 思考模式由我们评测。
 
 <p align="center">
   <picture>
@@ -51,10 +51,29 @@
 
 ## 快速开始
 
+任选一种后端启动，再运行下面的 Python 示例。
+
+### 选项 A：PyTorch
+
+适用于 NVIDIA GPU，支持文本、图片和视频。
+
 ```bash
 pip install "qev[torch] @ git+https://github.com/OmniJev/OneJev.git"
 qev serve --model OmniJev/OneJev-4B --port 8000
 ```
+
+### 选项 B：llama.cpp
+
+使用 GGUF 模型，支持文本和图片；视频使用 PyTorch。先安装 [llama.cpp](https://github.com/ggml-org/llama.cpp/blob/master/docs/install.md)（macOS 可运行 `brew install llama.cpp`）。
+
+```bash
+pip install git+https://github.com/OmniJev/OneJev.git
+qev serve --gguf mradermacher/OneJev-4B-GGUF:Q8_0 --port 8000
+```
+
+### 发起请求
+
+两种后端都在 `http://localhost:8000` 提供相同接口。在另一个终端中，用你自己的 `screenshot.png` 运行示例：
 
 ```python
 from qev import Client, Choice, Noul, Score
@@ -73,47 +92,40 @@ r.answers["next"].probabilities         # 每个选项一个概率
 r.answers["progress"].score             # 期望等级
 ```
 
-纯文本请求就是普通的 System One 请求；官方 `typesafe-sdk` 设置 `TYPESAFE_BASE_URL=http://localhost:8000` 即可使用。更多示例见 [examples/](../examples)：截图、视频、curl 和官方 SDK。[benchmarks/latency.py](../benchmarks/latency.py)可以在你自己的 GPU 上测出速度图里的数字。
-
-## llama.cpp
-
-OneJev 也能在 llama.cpp 上运行。装好 llama.cpp，再让 `qev serve` 指向 Hugging Face 上的 GGUF 仓库或本地的 .gguf 文件。
-
-```bash
-brew install llama.cpp
-pip install git+https://github.com/OmniJev/OneJev.git
-qev serve --gguf mradermacher/OneJev-4B-GGUF:Q8_0 --port 8000
-```
-
-接口完全相同，也支持图片；视频目前需要 PyTorch 服务。在 1,234 道测试题上，4B 的 GGUF 与 PyTorch 服务给出相同答案的比例在 f16 下是 99.8%，Q8_0 是 99.1%，Q4_K_M 是 93.7%，准确率最多相差 0.2 个百分点。四个尺寸的 GGUF 都在 Hugging Face 上，由 mradermacher 制作：
-[0.8B](https://huggingface.co/mradermacher/OneJev-0.8B-GGUF), [4B](https://huggingface.co/mradermacher/OneJev-4B-GGUF),
-[9B](https://huggingface.co/mradermacher/OneJev-9B-GGUF), [27B](https://huggingface.co/mradermacher/OneJev-27B-GGUF).
-
-## 工作原理
-
-状态连同其中的图片和视频帧只读一次，每个问题都是从这次读取分出的一小段分支。答案是最后一个位置上每个选项字母的概率。对同一个屏幕问十个问题，花的时间和问一个差不多。
-
-## API
-
-`POST /v1/systemone` 接收 TypeSafe 的请求，外加一个可选的 `media` 列表；state 里用 `<image:N>` 或 `<video:N>`指向其中每一项。
-
-```text
-image   {"type": "image", "url": ...}   {"type": "image", "data": <base64>}   {"type": "image", "path": ...}
-video   {"type": "video", "frames": [<image>, ...], "fps": 2.0}
-```
+接口兼容 TypeSafe System One。更多示例：[视频](../examples/video.py)、[curl](../examples/curl.sh)、[官方 TypeSafe SDK](../examples/official_sdk.py)。
 
 ## 训练
 
-对 Qwen3.5-0.8B、Qwen3.5-4B、Qwen3.5-9B 和 Qwen3.8-27B 做一轮全参数微调，视觉塔冻结。
+**体验示例数据：**[预览 100 条样本](https://huggingface.co/datasets/OmniJev/OneJev-Data/blob/main/sample/sample-100-preview.json) · [下载含图片版本（23 MB）](https://huggingface.co/datasets/OmniJev/OneJev-Data/resolve/main/sample/sample-100.parquet)。
 
-数据在 [Hugging Face](https://huggingface.co/datasets/OmniJev/OneJev-Data) 上。
+### 准备数据
+
+[OneJev-Data](https://huggingface.co/datasets/OmniJev/OneJev-Data) 公开了 99,193 道训练题中的 94,707 道，其余来源不允许再分发。下载并解包：
 
 ```bash
-git clone https://github.com/OmniJev/OneJev.git && cd OneJev
+git clone https://github.com/OmniJev/OneJev.git
+cd OneJev
 pip install -e ".[train]"
-hf download OmniJev/OneJev-Data --repo-type dataset --local-dir data/onejev
+hf download OmniJev/OneJev-Data --repo-type dataset --include "data/*.parquet" --local-dir data/onejev
 python -m train.unpack data/onejev
+```
+
+解包后得到 `data/onejev/train.jsonl`，图片和视频帧存放在 `data/onejev/media/`。
+
+### 微调
+
+四个模型分别基于 Qwen3.5-0.8B、Qwen3.5-4B、Qwen3.5-9B 和 Qwen3.8-27B，冻结视觉塔，微调一轮。配置使用 `5e-6` 学习率、16,384 token 长度上限，对答案概率计算交叉熵和 Brier 损失。在四张 GPU 上训练 4B 模型：
+
+```bash
 torchrun --nproc-per-node 4 -m train.sft --config train/configs/onejev_4b_full.yaml
+```
+
+配置：[0.8B](../train/configs/onejev_08b_full.yaml) · [4B](../train/configs/onejev_4b_full.yaml) · [9B](../train/configs/onejev_9b_full.yaml) · [27B](../train/configs/onejev_27b_full.yaml)。将 `--nproc-per-node` 设为 GPU 数量；9B 和 27B 配置启用 FSDP，分片存储模型与优化器状态。使用自有数据时，修改配置中的 `train` 和 `media_root`。
+
+4B 的最终模型保存在 `train/runs/onejev_4b/final`，可直接启动：
+
+```bash
+qev serve --model train/runs/onejev_4b/final --port 8000
 ```
 
 ## 引用
@@ -127,7 +139,7 @@ torchrun --nproc-per-node 4 -m train.sft --config train/configs/onejev_4b_full.y
 }
 ```
 
-## 友情链接
+## Friendly Links
 
 - [LINUX DO](https://linux.do)
 - [Jev](https://typesafe.ai)

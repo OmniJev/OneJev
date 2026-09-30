@@ -16,13 +16,13 @@
 </p>
 <p align="center">
   <a href="https://huggingface.co/datasets/OmniJev/OneJev-Data"><img alt="Data" src="https://img.shields.io/badge/Data-OneJev--Data-FF9D00?style=flat-square&logo=huggingface&logoColor=white"></a>
-  <a href="#api"><img alt="API" src="https://img.shields.io/badge/API-System_One-009688?style=flat-square&logo=fastapi&logoColor=white"></a>
+  <a href="../examples/request.json"><img alt="API" src="https://img.shields.io/badge/API-System_One-009688?style=flat-square&logo=fastapi&logoColor=white"></a>
   <a href="https://www.python.org"><img alt="Python" src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white"></a>
   <a href="https://pytorch.org"><img alt="PyTorch" src="https://img.shields.io/badge/PyTorch-2.6%2B-EE4C2C?style=flat-square&logo=pytorch&logoColor=white"></a>
   <a href="https://github.com/huggingface/transformers"><img alt="Transformers" src="https://img.shields.io/badge/Transformers-5%2B-FFD21E?style=flat-square&logo=huggingface&logoColor=black"></a>
 </p>
 
-OneJev を提案します。マルチモーダルな System One 意思決定モデルです。スクリーンショット、写真、動画、テキストのいずれかと型付きの質問をいくつか渡すと、1 回の順伝播で各質問のすべての選択肢に較正済みの確率を返します。TypeSafe の System One API に対応し、画像と動画に拡張しています。サイズは 4 種類で、どれも実際のエージェント実行、動画、画像から集めた同じ 99,193 問で学習しています。
+OneJev はマルチモーダルな System One 意思決定モデルです。スクリーンショット、写真、動画、テキストに関する型付きの質問に、1 回の順伝播で較正済みの確率を返します。サイズは 0.8B、4B、9B、27B の 4 種類です。
 
 ## 結果
 
@@ -40,7 +40,7 @@ OneJev を提案します。マルチモーダルな System One 意思決定モ�
   </picture>
 </p>
 
-スコアは正解率（%）です。OneJev テストセットは学習データと同じ種類の問題で、どのモデルも学習中に一度も見ていません。Jev 1.13 のスコアは公開値で、テキストのみを読みます。Jev-Omni と Qwen3.8-27B 思考モードは同じ問題で私たちが評価しました。思考モデルは毎回数千語の推論を書いてから答え、OneJev はそのまま答えます。
+正解率（%）。OneJev テストセットは OneJev の学習には使用していません。Jev 1.13 は公開のテキスト評価スコア、Jev-Omni と Qwen3.8-27B 思考モードは私たちによる評価です。
 
 <p align="center">
   <picture>
@@ -51,10 +51,29 @@ OneJev を提案します。マルチモーダルな System One 意思決定モ�
 
 ## クイックスタート
 
+どちらかのバックエンドを起動し、下の Python サンプルを実行してください。
+
+### 選択肢 A：PyTorch
+
+NVIDIA GPU 向け。テキスト、画像、動画に対応しています。
+
 ```bash
 pip install "qev[torch] @ git+https://github.com/OmniJev/OneJev.git"
 qev serve --model OmniJev/OneJev-4B --port 8000
 ```
+
+### 選択肢 B：llama.cpp
+
+GGUF モデル向け。テキストと画像に対応し、動画には PyTorch を使います。まず [llama.cpp](https://github.com/ggml-org/llama.cpp/blob/master/docs/install.md) をインストールしてください（macOS では `brew install llama.cpp`）。
+
+```bash
+pip install git+https://github.com/OmniJev/OneJev.git
+qev serve --gguf mradermacher/OneJev-4B-GGUF:Q8_0 --port 8000
+```
+
+### リクエストを送る
+
+どちらのバックエンドも `http://localhost:8000` で同じ API を提供します。別のターミナルで、自分の `screenshot.png` を使ってサンプルを実行してください：
 
 ```python
 from qev import Client, Choice, Noul, Score
@@ -73,47 +92,40 @@ r.answers["next"].probabilities         # 選択肢ごとの確率
 r.answers["progress"].score             # 期待レベル
 ```
 
-テキストのみのリクエストは通常の System One リクエストです。公式の `typesafe-sdk` も`TYPESAFE_BASE_URL=http://localhost:8000` を設定すればそのまま使えます。そのほかの例は [examples/](../examples)にあります（スクリーンショット、動画、curl、公式 SDK）。[benchmarks/latency.py](../benchmarks/latency.py) で速度グラフの数値を手元の GPU で測れます。
-
-## llama.cpp
-
-OneJev は llama.cpp でも動きます。llama.cpp をインストールし、`qev serve` に Hugging Face 上の GGUF リポジトリかローカルの .gguf ファイルを指定します。
-
-```bash
-brew install llama.cpp
-pip install git+https://github.com/OmniJev/OneJev.git
-qev serve --gguf mradermacher/OneJev-4B-GGUF:Q8_0 --port 8000
-```
-
-API は同じで、画像も使えます。動画には PyTorch サーバーが必要です。テスト 1,234 問で、4B の GGUF が PyTorch サーバーと同じ答えを返した割合は f16 で 99.8%、Q8_0 で 99.1%、Q4_K_M で 93.7% で、正解率の差は最大 0.2 ポイントです。4 サイズすべての GGUF が Hugging Face にあり、mradermacher さんが作成しました：
-[0.8B](https://huggingface.co/mradermacher/OneJev-0.8B-GGUF), [4B](https://huggingface.co/mradermacher/OneJev-4B-GGUF),
-[9B](https://huggingface.co/mradermacher/OneJev-9B-GGUF), [27B](https://huggingface.co/mradermacher/OneJev-27B-GGUF).
-
-## 仕組み
-
-状態は画像や動画フレームごと 1 回だけ読み込み、各質問はその読み込みから分岐する短い枝として処理します。答えは最後の位置での各選択肢の文字の確率です。同じ画面について 10 問聞いても、コストは 1 問とほとんど変わりません。
-
-## API
-
-`POST /v1/systemone` は TypeSafe のリクエストに加えて、任意の `media` リストを受け取ります。state の中では各項目を`<image:N>` または `<video:N>` で参照します。
-
-```text
-image   {"type": "image", "url": ...}   {"type": "image", "data": <base64>}   {"type": "image", "path": ...}
-video   {"type": "video", "frames": [<image>, ...], "fps": 2.0}
-```
+API は TypeSafe System One と互換です。その他の例：[動画](../examples/video.py)、[curl](../examples/curl.sh)、[公式 TypeSafe SDK](../examples/official_sdk.py)。
 
 ## 学習
 
-Qwen3.5-0.8B、Qwen3.5-4B、Qwen3.5-9B、Qwen3.8-27B を 1 エポック、全パラメータでファインチューニングしました。ビジョンタワーは固定しています。
+**デモデータを試す：**[100 件をプレビュー](https://huggingface.co/datasets/OmniJev/OneJev-Data/blob/main/sample/sample-100-preview.json) · [画像付きでダウンロード（23 MB）](https://huggingface.co/datasets/OmniJev/OneJev-Data/resolve/main/sample/sample-100.parquet)。
 
-データは [Hugging Face](https://huggingface.co/datasets/OmniJev/OneJev-Data) にあります。
+### データの準備
+
+[OneJev-Data](https://huggingface.co/datasets/OmniJev/OneJev-Data) は学習に使った 99,193 問のうち 94,707 問を公開しています。残りは元データの再配布が許可されていません。ダウンロードして展開します：
 
 ```bash
-git clone https://github.com/OmniJev/OneJev.git && cd OneJev
+git clone https://github.com/OmniJev/OneJev.git
+cd OneJev
 pip install -e ".[train]"
-hf download OmniJev/OneJev-Data --repo-type dataset --local-dir data/onejev
+hf download OmniJev/OneJev-Data --repo-type dataset --include "data/*.parquet" --local-dir data/onejev
 python -m train.unpack data/onejev
+```
+
+展開すると `data/onejev/train.jsonl` が作成され、画像と動画フレームが `data/onejev/media/` に保存されます。
+
+### ファインチューニング
+
+4 モデルはそれぞれ Qwen3.5-0.8B、Qwen3.5-4B、Qwen3.5-9B、Qwen3.8-27B をベースに、ビジョンタワーを固定して 1 エポック学習します。設定は学習率 `5e-6`、最大 16,384 トークンで、回答の確率に対する交差エントロピーと Brier 損失を使います。4B を GPU 4 枚で学習するには：
+
+```bash
 torchrun --nproc-per-node 4 -m train.sft --config train/configs/onejev_4b_full.yaml
+```
+
+設定：[0.8B](../train/configs/onejev_08b_full.yaml) · [4B](../train/configs/onejev_4b_full.yaml) · [9B](../train/configs/onejev_9b_full.yaml) · [27B](../train/configs/onejev_27b_full.yaml)。`--nproc-per-node` を GPU の枚数に合わせてください。9B と 27B は FSDP でモデルとオプティマイザーの状態を分割します。独自のデータを使う場合は、設定の `train` と `media_root` を変更します。
+
+4B の最終モデルは `train/runs/onejev_4b/final` に保存されます。次のコマンドで起動できます：
+
+```bash
+qev serve --model train/runs/onejev_4b/final --port 8000
 ```
 
 ## 引用
@@ -127,7 +139,7 @@ torchrun --nproc-per-node 4 -m train.sft --config train/configs/onejev_4b_full.y
 }
 ```
 
-## 関連リンク
+## Friendly Links
 
 - [LINUX DO](https://linux.do)
 - [Jev](https://typesafe.ai)
