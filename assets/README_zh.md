@@ -98,7 +98,7 @@ r.answers["任务进度"].score              # 期望等级
 
 ## 训练
 
-**体验示例数据：**[预览 100 条样本](https://huggingface.co/datasets/OmniJev/OneJev-Data/blob/main/sample/sample-100-preview.json) · [下载含图片版本（23 MB）](https://huggingface.co/datasets/OmniJev/OneJev-Data/resolve/main/sample/sample-100.parquet)。
+**体验示例数据：**[下载 100 条样本，含图片（23 MB）](https://huggingface.co/datasets/OmniJev/OneJev-Data/resolve/main/sample/sample-100.parquet?download=true)。
 
 ### 准备数据
 

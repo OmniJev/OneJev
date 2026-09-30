@@ -96,7 +96,7 @@ API は TypeSafe System One と互換です。その他の例：[動画](../exam
 
 ## 学習
 
-**デモデータを試す：**[100 件をプレビュー](https://huggingface.co/datasets/OmniJev/OneJev-Data/blob/main/sample/sample-100-preview.json) · [画像付きでダウンロード（23 MB）](https://huggingface.co/datasets/OmniJev/OneJev-Data/resolve/main/sample/sample-100.parquet)。
+**デモデータを試す：**[100 件を画像付きでダウンロード（23 MB）](https://huggingface.co/datasets/OmniJev/OneJev-Data/resolve/main/sample/sample-100.parquet?download=true)。
 
 ### データの準備
 

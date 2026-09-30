@@ -101,7 +101,7 @@ The API is compatible with TypeSafe System One. More examples: [video](examples/
 
 ## Training
 
-**Try the demo data:** [Preview 100 examples](https://huggingface.co/datasets/OmniJev/OneJev-Data/blob/main/sample/sample-100-preview.json) · [Download with images (23 MB)](https://huggingface.co/datasets/OmniJev/OneJev-Data/resolve/main/sample/sample-100.parquet).
+**Try the demo data:** [Download 100 examples with images (23 MB)](https://huggingface.co/datasets/OmniJev/OneJev-Data/resolve/main/sample/sample-100.parquet?download=true).
 
 ### Prepare the data
 
