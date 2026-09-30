@@ -80,16 +80,18 @@ from qev import Client, Choice, Noul, Score
 from qev.media import data_uri
 
 r = Client("http://localhost:8000").system_one(
-    state={"task": "Pay the open invoice from ACME", "screen": "<image:1>"},
+    state={"任务": "支付 ACME 的待付款发票", "屏幕": "<image:1>"},
     media=[{"type": "image", "data": data_uri("screenshot.png")}],
-    questions={"done": Noul("The invoice has been paid"),
-               "next": Choice("What should the agent do next?",
-                              {"click": "click an element", "type": "type text", "scroll": "scroll", "stop": "stop"}),
-               "progress": Score("How far along is the task?", ["not started", "halfway", "almost done", "done"])},
+    questions={
+        "完成状态": Noul("发票已付款"),
+        "下一步": Choice("智能体下一步应该做什么？",
+                       {"点击": "点击界面元素", "输入": "输入文字", "滚动": "滚动页面", "停止": "停止操作"}),
+        "任务进度": Score("任务完成到哪一步了？", ["尚未开始", "完成一半", "即将完成", "已完成"]),
+    },
 )
-r.answers["done"].noul                  # “是”的概率
-r.answers["next"].probabilities         # 每个选项一个概率
-r.answers["progress"].score             # 期望等级
+r.answers["完成状态"].noul               # “是”的概率
+r.answers["下一步"].probabilities        # 每个选项一个概率
+r.answers["任务进度"].score              # 期望等级
 ```
 
 接口兼容 TypeSafe System One。更多示例：[视频](../examples/video.py)、[curl](../examples/curl.sh)、[官方 TypeSafe SDK](../examples/official_sdk.py)。
