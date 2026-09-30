@@ -98,21 +98,24 @@ r.answers["任务进度"].score              # 期望等级
 
 ## 训练
 
-**体验示例数据：**[下载 100 条样本，含图片（23 MB）](https://huggingface.co/datasets/OmniJev/OneJev-Data/resolve/main/sample/sample-100.parquet?download=true)。
-
-### 准备数据
-
-[OneJev-Data](https://huggingface.co/datasets/OmniJev/OneJev-Data) 公开了 99,193 道训练题中的 94,707 道，其余来源不允许再分发。下载并解包：
-
 ```bash
 git clone https://github.com/OmniJev/OneJev.git
 cd OneJev
 pip install -e ".[train]"
-hf download OmniJev/OneJev-Data --repo-type dataset --include "data/*.parquet" --local-dir data/onejev
-python -m train.unpack data/onejev
+
+# A、B 二选一，下面默认启用 A。
+# A. Demo：100 条样本，含图片（23 MB）
+hf download OmniJev/OneJev-Data sample/sample-100.parquet --repo-type dataset --local-dir data/onejev
+python -m train.unpack data/onejev --sample
+
+# B. 全量数据：94,707 条（17.7 GB）。使用 B 时，取消下面两行的注释，并跳过 A。
+# hf download OmniJev/OneJev-Data --repo-type dataset --include "data/*.parquet" --local-dir data/onejev
+# python -m train.unpack data/onejev
 ```
 
-解包后得到 `data/onejev/train.jsonl`，图片和视频帧存放在 `data/onejev/media/`。
+两种方式都会生成 `data/onejev/train.jsonl`，并将图片和视频帧解包到 `data/onejev/media/`。
+
+[OneJev-Data](https://huggingface.co/datasets/OmniJev/OneJev-Data) 公开了原始 99,193 道训练题中的 94,707 道，其余来源不允许再分发。
 
 ### 微调
 

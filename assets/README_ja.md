@@ -96,21 +96,24 @@ API は TypeSafe System One と互換です。その他の例：[動画](../exam
 
 ## 学習
 
-**デモデータを試す：**[100 件を画像付きでダウンロード（23 MB）](https://huggingface.co/datasets/OmniJev/OneJev-Data/resolve/main/sample/sample-100.parquet?download=true)。
-
-### データの準備
-
-[OneJev-Data](https://huggingface.co/datasets/OmniJev/OneJev-Data) は学習に使った 99,193 問のうち 94,707 問を公開しています。残りは元データの再配布が許可されていません。ダウンロードして展開します：
-
 ```bash
 git clone https://github.com/OmniJev/OneJev.git
 cd OneJev
 pip install -e ".[train]"
-hf download OmniJev/OneJev-Data --repo-type dataset --include "data/*.parquet" --local-dir data/onejev
-python -m train.unpack data/onejev
+
+# A・B のどちらかを選択。以下では A が有効です。
+# A. デモ：画像付き 100 件（23 MB）
+hf download OmniJev/OneJev-Data sample/sample-100.parquet --repo-type dataset --local-dir data/onejev
+python -m train.unpack data/onejev --sample
+
+# B. 全データ：94,707 件（17.7 GB）。B を使う場合は次の 2 行のコメントを外し、A を省いてください。
+# hf download OmniJev/OneJev-Data --repo-type dataset --include "data/*.parquet" --local-dir data/onejev
+# python -m train.unpack data/onejev
 ```
 
-展開すると `data/onejev/train.jsonl` が作成され、画像と動画フレームが `data/onejev/media/` に保存されます。
+どちらを選んでも `data/onejev/train.jsonl` が作成され、画像と動画フレームは `data/onejev/media/` に展開されます。
+
+[OneJev-Data](https://huggingface.co/datasets/OmniJev/OneJev-Data) は元の学習データ 99,193 問のうち 94,707 問を公開しています。残りは元データの再配布が許可されていません。
 
 ### ファインチューニング
 

@@ -101,22 +101,25 @@ The API is compatible with TypeSafe System One. More examples: [video](examples/
 
 ## Training
 
-**Try the demo data:** [Download 100 examples with images (23 MB)](https://huggingface.co/datasets/OmniJev/OneJev-Data/resolve/main/sample/sample-100.parquet?download=true).
-
-### Prepare the data
-
-[OneJev-Data](https://huggingface.co/datasets/OmniJev/OneJev-Data) contains 94,707 of the 99,193 training questions;
-the remaining sources do not permit redistribution. Download and unpack the release:
-
 ```bash
 git clone https://github.com/OmniJev/OneJev.git
 cd OneJev
 pip install -e ".[train]"
-hf download OmniJev/OneJev-Data --repo-type dataset --include "data/*.parquet" --local-dir data/onejev
-python -m train.unpack data/onejev
+
+# Choose A or B. A is enabled below.
+# A. Demo: 100 examples with images (23 MB)
+hf download OmniJev/OneJev-Data sample/sample-100.parquet --repo-type dataset --local-dir data/onejev
+python -m train.unpack data/onejev --sample
+
+# B. Full dataset: 94,707 examples (17.7 GB). Uncomment these two lines instead of A.
+# hf download OmniJev/OneJev-Data --repo-type dataset --include "data/*.parquet" --local-dir data/onejev
+# python -m train.unpack data/onejev
 ```
 
-This creates `data/onejev/train.jsonl` and extracts images and video frames into `data/onejev/media/`.
+Either option creates `data/onejev/train.jsonl` and extracts images and video frames into `data/onejev/media/`.
+
+[OneJev-Data](https://huggingface.co/datasets/OmniJev/OneJev-Data) releases 94,707 of the original 99,193
+training questions; the remaining sources do not permit redistribution.
 
 ### Fine-tune
 

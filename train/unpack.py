@@ -1,11 +1,12 @@
 """Turn the OneJev-Data Parquet shards into train.jsonl plus media files, the layout train.sft reads.
 
     python -m train.unpack data/onejev
+    python -m train.unpack data/onejev --sample
 """
 from __future__ import annotations
 
+import argparse
 import json
-import sys
 from pathlib import Path
 
 import pyarrow.parquet as pq
@@ -22,8 +23,15 @@ def media_files(media: list | None) -> list[str]:
 
 
 def main() -> None:
-    root = Path(sys.argv[1] if len(sys.argv) > 1 else "data/onejev")
-    shards = sorted((root / "data").glob("train-*.parquet"))
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("root", type=Path, nargs="?", default=Path("data/onejev"))
+    parser.add_argument("--sample", action="store_true", help="unpack only the 100-example demo")
+    args = parser.parse_args()
+    root = args.root
+    pattern = "sample/sample-100.parquet" if args.sample else "data/train-*.parquet"
+    shards = sorted(root.glob(pattern))
+    if not shards:
+        parser.error(f"no files match {root / pattern}; download the selected dataset first")
     n = 0
     with open(root / "train.jsonl", "w") as out:
         for shard in shards:
