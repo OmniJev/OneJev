@@ -71,6 +71,19 @@ pip install git+https://github.com/OmniJev/OneJev.git
 qev serve --gguf mradermacher/OneJev-4B-GGUF:Q8_0 --port 8000
 ```
 
+### 選択肢 C：Docker
+
+リポジトリには、ハードウェアを検出してバックエンドを 1 つ起動する Compose スタックが含まれています。llama.cpp を使う場合は、GGUF モデルと `mmproj` ファイルを先に `./models` に置いてください。
+
+```bash
+cp .env.example .env                 # 非公開リポジトリでは HF_TOKEN を設定
+./scripts/start.sh                   # 自動検出（Windows：.\scripts\start.ps1）
+./scripts/start.sh logs              # ログを追う
+./scripts/start.sh down              # すべての profile を停止
+```
+
+`./scripts/start.sh <torch|rocm|vulkan|gguf|gguf-rocm|cpu>` でバックエンドを強制できます（`--build` で再ビルド）。`torch`/`rocm` は :8000、llama.cpp は :8001 で API を提供し、Playground UI は :8080 です。Windows では `torch`（NVIDIA）と `cpu` のみ利用できます。
+
 ### リクエストを送る
 
 どちらのバックエンドも `http://localhost:8000` で同じ API を提供します。別のターミナルで、自分の `screenshot.png` を使ってサンプルを実行してください：
