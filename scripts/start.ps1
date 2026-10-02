@@ -87,8 +87,16 @@ switch ($Action) {
         Write-Warning "no *.gguf in $dir; add the model and its mmproj file (LLAMA_MODEL / LLAMA_MMPROJ)."
       }
     }
+    # The onejev/qev images are only built locally from the repo
+    # Dockerfile and never published to a registry. Build them first
+    # (cached, unless -Build) so compose does not try to pull
+    # onejev/qev and die with "pull access denied".
+    $buildArgs = @('--profile', $Backend, 'build')
+    if ($Build) { $buildArgs += '--no-cache' }
+    Write-Host "backend '$Backend' -> docker compose $($buildArgs -join ' ')"
+    & docker compose @buildArgs
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     $composeArgs = @('--profile', $Backend, 'up')
-    if ($Build) { $composeArgs += '--build' }
     if (-not $Foreground) { $composeArgs += '-d' }
     Write-Host "backend '$Backend' -> docker compose $($composeArgs -join ' ')"
     & docker compose @composeArgs

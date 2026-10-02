@@ -28,9 +28,9 @@ backend   auto (default), torch (NVIDIA/CUDA), rocm (AMD/ROCm),
           vulkan (AMD/Intel), gguf (NVIDIA + GGUF), gguf-rocm (AMD + GGUF),
           cpu (fallback)
 
-options   --build       rebuild images before starting
-          --foreground  run in the foreground (default: detached)
-          -h, --help    show this help
+options   --build       rebuild images from scratch (cached build by default)
+           --foreground  run in the foreground (default: detached)
+           -h, --help    show this help
 
 env       QEV_BACKEND              same values as `backend`, overrides detection
           QEV_NO_AUTODETECT_GID=1  do not read video/render GIDs from the host
@@ -126,8 +126,15 @@ case "$action" in
   ps)   docker compose --profile "$backend" ps ;;
   up)
     check_models "$backend"
+    # The onejev/qev images are only built locally from the repo
+    # Dockerfile and never published to a registry. Build them first
+    # (cached, unless --build) so compose does not try to pull
+    # onejev/qev and die with "pull access denied".
+    build_args=(--profile "$backend" build)
+    [ "$build" = 1 ] && build_args+=(--no-cache)
+    log "backend '$backend' -> docker compose ${build_args[*]}"
+    docker compose "${build_args[@]}"
     up_args=(--profile "$backend" up)
-    [ "$build" = 1 ] && up_args+=(--build)
     [ "$foreground" = 0 ] && up_args+=(-d)
     log "backend '$backend' -> docker compose ${up_args[*]}"
     docker compose "${up_args[@]}"
