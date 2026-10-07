@@ -3,7 +3,7 @@ import random
 
 import pytest
 
-from qev.llamacpp import VISION_BLOCK, smart_resize, tokenizer_repo
+from qev.llamacpp import VISION_BLOCK, LlamaCppEngine, smart_resize, tokenizer_repo
 
 
 def test_smart_resize_matches_the_processor():
@@ -27,3 +27,22 @@ def test_tokenizer_repo_from_names():
 def test_vision_blocks_become_markers():
     text = 'a "<|vision_start|><|image_pad|><|vision_end|>" b <|vision_start|><|image_pad|><|vision_end|>'
     assert VISION_BLOCK.sub("<m>", text) == 'a "<m>" b <m>'
+
+
+def test_branches_run_in_the_slot_that_holds_the_state():
+    engine = object.__new__(LlamaCppEngine)
+    sent = []
+
+    def post(path, body):
+        sent.append(body)
+        if body["n_predict"] == 0:
+            return [{"id_slot": 2}]
+        return [{"index": i, "completion_probabilities": [{"top_logprobs": []}]} for i in range(len(body["prompt"]))]
+
+    engine._post = post
+    prefix = {"prompt_string": "state", "multimodal_data": []}
+    prompts = [{"prompt_string": "state" + q, "multimodal_data": []} for q in ("a", "b", "c")]
+    pin = engine._prefill(prefix)
+    engine._complete(prompts, {"n_probs": 64, **pin})
+    assert sent[0]["prompt"] == [prefix]
+    assert sent[1]["id_slot"] == 2 and len(sent[1]["prompt"]) == 3

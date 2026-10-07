@@ -186,7 +186,7 @@ def main() -> None:
     s.add_argument("--mmproj", default=None, help="vision projector GGUF for --gguf (found next to a local file)")
     s.add_argument("--tokenizer", default=None,
                    help="OneJev repository or directory for the tokenizer with --gguf (guessed from the file name)")
-    s.add_argument("--parallel", type=int, default=2, help="llama-server slots for --gguf")
+    s.add_argument("--parallel", type=int, default=1, help="llama-server slots for --gguf")
     s.add_argument("--host", default="0.0.0.0")
     s.add_argument("--port", type=int, default=8000)
     s.set_defaults(func=cmd_serve)

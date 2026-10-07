@@ -87,7 +87,7 @@ class LlamaServer:
     """A llama-server child process for one GGUF model (a local file or a Hub repo:quant)."""
 
     def __init__(self, gguf: str, binary: str = "llama-server", mmproj: str | None = None, ctx: int = 32768,
-                 parallel: int = 4, extra: list[str] | None = None) -> None:
+                 parallel: int = 1, extra: list[str] | None = None) -> None:
         exe = shutil.which(binary) or (binary if Path(binary).exists() else None)
         if exe is None:
             raise FileNotFoundError(f"{binary} not found; install llama.cpp (macOS: brew install llama.cpp) or pass "
@@ -218,12 +218,15 @@ class LlamaCppEngine(DecisionEngine):
             raise mmedia.MediaError(f"could not load media: {type(exc).__name__}: {exc}") from exc
         self._media = items
 
-    def _prompts(self, state: Any, rendered: list[RenderedQuestion]) -> list[Any]:
+    def _prompts(self, state: Any, rendered: list[RenderedQuestion]) -> tuple[Any, list[Any]]:
+        """The shared state prefix and one full prompt per branch."""
         if not self._media:
             prefix_ids, suffixes = self._prefix_and_suffix_ids(state, rendered)
-            return [prefix_ids + s for s in suffixes]
-        return [{"prompt_string": VISION_BLOCK.sub(self.media_marker, self._render_prompt(state, r.suffix)),
-                 "multimodal_data": self._images} for r in rendered]
+            return prefix_ids, [prefix_ids + s for s in suffixes]
+        text = VISION_BLOCK.sub(self.media_marker, self._render_prompt(state, "QEV_PREFIX_MARK"))
+        head, tail = text.split("QEV_PREFIX_MARK")
+        return ({"prompt_string": head, "multimodal_data": self._images},
+                [{"prompt_string": head + r.suffix + tail, "multimodal_data": self._images} for r in rendered])
 
     def _complete(self, prompts: list[Any], extra: dict) -> list[list[dict]]:
         body = {"prompt": prompts, "n_predict": 1, "cache_prompt": True, "temperature": 0.0, **extra}
@@ -232,10 +235,18 @@ class LlamaCppEngine(DecisionEngine):
         out = sorted(out, key=lambda r: r.get("index", 0))
         return [r["completion_probabilities"][0] for r in out]
 
+    def _prefill(self, prefix: Any) -> dict:
+        """Compute the shared state alone, so its slot keeps a checkpoint at the end of the state; every branch then
+        runs in that slot and computes only its own suffix."""
+        out = self._post("/completion", {"prompt": [prefix], "n_predict": 0, "cache_prompt": True})
+        slot = (out[0] if isinstance(out, list) else out).get("id_slot")
+        return {} if slot is None else {"id_slot": slot}
+
     def _run_sequential(self, state: Any, rendered: list[RenderedQuestion]) -> list[BranchResult]:
-        prompts = self._prompts(state, rendered)
+        prefix, prompts = self._prompts(state, rendered)
+        pin = self._prefill(prefix)
         n_top = max(64, 2 * max(r.n_slots for r in rendered))
-        tops = self._complete(prompts, {"n_probs": n_top})
+        tops = self._complete(prompts, {"n_probs": n_top, **pin})
         results: list[BranchResult | None] = [None] * len(rendered)
         missing = []
         for i, (r, top) in enumerate(zip(rendered, tops)):
@@ -252,7 +263,7 @@ class LlamaCppEngine(DecisionEngine):
             slots = self.slot_ids[: r.n_slots]
             top = self._complete([prompts[i]], {"n_probs": r.n_slots, "post_sampling_probs": True,
                                                 "samplers": ["temperature"], "temperature": 1.0,
-                                                "logit_bias": [[s, 100.0] for s in slots]})[0]
+                                                "logit_bias": [[s, 100.0] for s in slots], **pin})[0]
             p = {t["id"]: t["prob"] for t in top["top_probs"]}
             logits = [math.log(max(p.get(s, 0.0), 1e-30)) for s in slots]
             lp = {t["id"]: t["logprob"] for t in tops[i]["top_logprobs"]}
