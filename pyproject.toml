@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "qev"
+name = "onejev"
 version = "0.1.1"
 description = "Open System One decision model: typed, calibrated decisions behind a TypeSafe-compatible API"
 readme = "README.md"
