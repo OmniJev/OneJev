@@ -4,7 +4,7 @@
 #   ./scripts/start.sh                 # detect hardware, start detached
 #   ./scripts/start.sh vulkan --build  # force a backend and rebuild
 #   ./scripts/start.sh down            # stop every profile
-#   ./scripts/start.sh logs            # follow logs of the detected backend
+#   ./scripts/start.sh logs            # follow logs of the running backend
 #
 # backend: auto (default) | torch (NVIDIA CUDA) | rocm (AMD) | vulkan (AMD/Intel)
 #          | gguf (NVIDIA + GGUF) | gguf-rocm (AMD + GGUF) | cpu (no GPU)
@@ -16,7 +16,6 @@ cd "$ROOT"
 ALL_PROFILES=(torch rocm gguf gguf-rocm vulkan cpu)
 
 log()  { printf '\033[36m%s\033[0m\n' "$*"; }
-warn() { printf '\033[33mwarning: %s\033[0m\n' "$*" >&2; }
 die()  { printf '\033[31merror: %s\033[0m\n' "$*" >&2; exit 1; }
 
 usage() {
@@ -65,23 +64,6 @@ detect_gids() {
   fi
 }
 
-upstream_for() {
-  case "$1" in
-    torch)  printf 'qev:8000' ;;
-    rocm)   printf 'qev-rocm:8000' ;;
-    gguf|gguf-rocm|vulkan|cpu) printf 'qev-gguf:8000' ;;
-  esac
-}
-
-is_gguf_backend() { case "$1" in gguf|gguf-rocm|vulkan|cpu) return 0 ;; *) return 1 ;; esac; }
-
-check_models() {
-  is_gguf_backend "$1" || return 0
-  local dir="${LLAMA_MODELS_DIR:-./models}"
-  compgen -G "$dir/*.gguf" >/dev/null 2>&1 && return 0
-  warn "no *.gguf in $dir; add the model and its mmproj file (see .env.example: LLAMA_MODEL / LLAMA_MMPROJ)."
-}
-
 backend=""
 action="up"
 build=0
@@ -102,12 +84,13 @@ done
 command -v docker >/dev/null 2>&1 || die "docker not found"
 docker compose version >/dev/null 2>&1 || die "docker compose v2 not found"
 
-if [ "$action" = "down" ]; then
-  profile_args=()
-  for p in "${ALL_PROFILES[@]}"; do profile_args+=(--profile "$p"); done
-  docker compose "${profile_args[@]}" down --remove-orphans
-  exit 0
-fi
+profile_args=()
+for p in "${ALL_PROFILES[@]}"; do profile_args+=(--profile "$p"); done
+case "$action" in
+  down) exec docker compose "${profile_args[@]}" down --remove-orphans ;;
+  logs) exec docker compose "${profile_args[@]}" logs -f --tail=200 ;;
+  ps)   exec docker compose "${profile_args[@]}" ps ;;
+esac
 
 [ -z "$backend" ] && backend="$(detect_backend)"
 case "$backend" in torch|rocm|vulkan|gguf|gguf-rocm|cpu) ;; *) die "unknown backend: $backend" ;; esac
@@ -117,15 +100,9 @@ if [ ! -f .env ] && [ -f .env.example ]; then
   log "created .env from .env.example"
 fi
 detect_gids
-# The playground upstream must match the started backend, so this exported value
-# intentionally takes precedence over QEV_UPSTREAM in .env.
-export QEV_UPSTREAM="${QEV_UPSTREAM:-$(upstream_for "$backend")}"
 
 case "$action" in
-  logs) docker compose --profile "$backend" logs -f --tail=200 ;;
-  ps)   docker compose --profile "$backend" ps ;;
   up)
-    check_models "$backend"
     # The onejev/qev images are only built locally from the repo
     # Dockerfile and never published to a registry. Build them first
     # (cached, unless --build) so compose does not try to pull
@@ -138,9 +115,9 @@ case "$action" in
     [ "$foreground" = 0 ] && up_args+=(-d)
     log "backend '$backend' -> docker compose ${up_args[*]}"
     docker compose "${up_args[@]}"
-    case "$backend" in torch|rocm) api_port=8000 ;; *) api_port=8001 ;; esac
-    log "API:        http://localhost:${api_port}   (playground upstream: ${QEV_UPSTREAM})"
-    log "Playground: http://localhost:${PLAYGROUND_PORT:-8080}"
-    log "Stop:       ./scripts/start.sh down"
+    svc="$(docker compose "${profile_args[@]}" ps --services | head -n1)"
+    port="$(docker compose "${profile_args[@]}" port "$svc" 8000 2>/dev/null | head -n1 || true)"
+    log "API and playground: http://localhost:${port##*:}"
+    log "Stop: ./scripts/start.sh down"
     ;;
 esac

@@ -73,7 +73,7 @@ qev serve --gguf mradermacher/OneJev-4B-GGUF:Q8_0 --port 8000
 
 ### 選択肢 C：Docker
 
-リポジトリには、ハードウェアを検出してバックエンドを 1 つ起動する Compose スタックが含まれています。llama.cpp を使う場合は、GGUF モデルと `mmproj` ファイルを先に `./models` に置いてください。
+リポジトリには、ハードウェアを検出してバックエンドを 1 つ起動する Compose スタックが含まれています。llama.cpp の profile は初回起動時に `mradermacher/OneJev-4B-GGUF:Q8_0` をダウンロードします。別のサイズや量子化は `.env` の `QEV_GGUF` で指定してください。
 
 ```bash
 cp .env.example .env                 # 非公開リポジトリでは HF_TOKEN を設定
@@ -82,7 +82,7 @@ cp .env.example .env                 # 非公開リポジトリでは HF_TOKEN �
 ./scripts/start.sh down              # すべての profile を停止
 ```
 
-`./scripts/start.sh <torch|rocm|vulkan|gguf|gguf-rocm|cpu>` でバックエンドを強制できます（`--build` で再ビルド）。`torch`/`rocm` は :8000、llama.cpp は :8001 で API を提供し、Playground UI は :8080 です。Windows では `torch`（NVIDIA）と `cpu` のみ利用できます。
+`./scripts/start.sh <torch|rocm|vulkan|gguf|gguf-rocm|cpu>` でバックエンドを強制できます（`--build` で再ビルド）。どの profile も :8000 で API と Playground UI を提供します。Windows では `torch`（NVIDIA）と `cpu` のみ利用できます。
 
 ### リクエストを送る
 

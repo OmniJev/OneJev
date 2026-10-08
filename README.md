@@ -77,7 +77,8 @@ qev serve --gguf mradermacher/OneJev-4B-GGUF:Q8_0 --port 8000
 ### Option C: Docker
 
 The repo ships a Compose stack that detects your hardware and starts one backend.
-For the llama.cpp profiles, put your GGUF model and its `mmproj` file in `./models` first.
+The llama.cpp profiles download `mradermacher/OneJev-4B-GGUF:Q8_0` on first start; set `QEV_GGUF` in `.env` for
+another size or quant.
 
 ```bash
 cp .env.example .env                 # set HF_TOKEN for gated/private repos
@@ -87,9 +88,8 @@ cp .env.example .env                 # set HF_TOKEN for gated/private repos
 ```
 
 Force a backend with `./scripts/start.sh <torch|rocm|vulkan|gguf|gguf-rocm|cpu>`
-(add `--build` to rebuild). The `torch`/`rocm` profiles serve the API on :8000,
-the llama.cpp profiles on :8001, and the playground UI on :8080. On Windows only
-`torch` (NVIDIA) and `cpu` are available.
+(add `--build` to rebuild). Every profile serves the API and the playground on :8000.
+On Windows only `torch` (NVIDIA) and `cpu` are available.
 
 ### Send a request
 

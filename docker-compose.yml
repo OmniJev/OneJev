@@ -1,16 +1,15 @@
 name: onejev
 
-# Backend profiles. Run one at a time:
-#   torch      NVIDIA / CUDA PyTorch server        API :8000
-#   rocm       AMD / ROCm PyTorch server           API :8000
-#   gguf       llama.cpp on NVIDIA / CUDA          API :8001
-#   gguf-rocm  llama.cpp on AMD / ROCm             API :8001
-#   vulkan     llama.cpp on AMD / Intel (Vulkan)   API :8001
-#   cpu        llama.cpp on CPU (fallback)         API :8001
+# Backend profiles. Run one at a time; each serves the API and playground on :8000.
+#   torch      NVIDIA / CUDA PyTorch server
+#   rocm       AMD / ROCm PyTorch server
+#   gguf       llama.cpp on NVIDIA / CUDA
+#   gguf-rocm  llama.cpp on AMD / ROCm
+#   vulkan     llama.cpp on AMD / Intel (Vulkan)
+#   cpu        llama.cpp on CPU (fallback)
 #
 # Prefer scripts/start.sh (auto-detects) or `docker compose --profile <name> up`.
-# Do not combine two backend profiles: qev/qev-rocm both bind :8000 and every
-# llama.cpp backend answers to the internal alias `llama`.
+# Do not combine two backend profiles: they all bind :8000.
 
 # NVIDIA GPU reservation.
 x-gpu-nvidia: &gpu-nvidia
@@ -43,63 +42,29 @@ x-gpu-vulkan: &gpu-vulkan
   security_opt:
     - seccomp:unconfined
 
-# Shared llama-server: command, model mount, healthcheck, network alias `llama`.
-x-llama: &llama
+# llama.cpp backends: the official llama.cpp server image with qev installed, running
+# `qev serve --gguf` as on the host (it downloads the GGUF and its mmproj).
+x-qev-gguf: &qev-gguf
   command:
+    - serve
+    - --gguf
+    - ${QEV_GGUF:-mradermacher/OneJev-4B-GGUF:Q8_0}
+    - --llama-server
+    - /app/llama-server
     - --host
     - 0.0.0.0
     - --port
-    - "8080"
-    - -m
-    - ${LLAMA_MODEL:-/models/model.gguf}
-    - --mmproj
-    - ${LLAMA_MMPROJ:-/models/mmproj.gguf}
-    - -ngl
-    - ${LLAMA_N_GPU_LAYERS:-99}
-    - -c
-    - ${LLAMA_CTX:-65536}
-    - -np
-    - ${LLAMA_PARALLEL:-2}
-    - --image-min-tokens
-    - "64"
-    - --image-max-tokens
-    - "16384"
-  environment:
-    # Optional ROCm override for unknown gfx archs. Left without a value so it
-    # is injected only when the project environment provides it: an empty value
-    # makes ROCr force-empty the arch and hide every GPU.
-    HSA_OVERRIDE_GFX_VERSION:
-  volumes:
-    - ${LLAMA_MODELS_DIR:-./models}:/models:ro
-  healthcheck:
-    test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/health"]
-    interval: 10s
-    timeout: 5s
-    retries: 60
-    start_period: 120s
-  networks:
-    default:
-      aliases:
-        - llama
-  restart: unless-stopped
-
-# One qev API for every llama.cpp backend: waits for `llama:8080`, then serves.
-x-qev-gguf: &qev-gguf
-  build:
-    context: .
-    target: base
-  image: onejev/qev:base
-  entrypoint: ["/bin/sh", "-c"]
-  command:
-    - 'until curl -fsS http://llama:8080/health >/dev/null 2>&1; do sleep 2; done; exec qev serve --llama-url http://llama:8080 --tokenizer "$QEV_MODEL" --name "$QEV_GGUF_NAME" --host 0.0.0.0 --port 8000'
+    - "8000"
   ports:
-    - "${QEV_GGUF_PORT:-8001}:8000"
+    - "${QEV_PORT:-8000}:8000"
   environment:
     HF_HOME: /data/hf
     HF_TOKEN: ${HF_TOKEN:-}
     QEV_DEBIAS: ${QEV_DEBIAS:-1}
-    QEV_MODEL: ${QEV_MODEL:-OmniJev/OneJev-4B}
-    QEV_GGUF_NAME: ${QEV_GGUF_NAME:-OneJev-4B}
+    # Optional ROCm override for unknown gfx archs. Left without a value so it
+    # is injected only when the project environment provides it: an empty value
+    # makes ROCr force-empty the arch and hide every GPU.
+    HSA_OVERRIDE_GFX_VERSION:
   volumes:
     - hf-cache:/data/hf
   restart: unless-stopped
@@ -111,7 +76,7 @@ services:
       context: .
       target: torch
       args:
-        TORCH_INDEX_URL: ${TORCH_INDEX_URL:-https://download.pytorch.org/whl/cu124}
+        TORCH_INDEX_URL: ${TORCH_INDEX_URL:-}
     image: onejev/qev:torch
     profiles: ["torch"]
     command:
@@ -167,46 +132,49 @@ services:
     restart: unless-stopped
     <<: *gpu-amd
 
-  # llama-server on NVIDIA / CUDA. Put model + mmproj *.gguf in ./models.
-  llama-server:
-    <<: [*llama, *gpu-nvidia]
-    image: ghcr.io/ggml-org/llama.cpp:server-cuda
+  # llama.cpp on NVIDIA / CUDA.
+  qev-gguf:
+    <<: [*qev-gguf, *gpu-nvidia]
+    build:
+      context: .
+      target: gguf
+      args:
+        LLAMA_IMAGE: ghcr.io/ggml-org/llama.cpp:server-cuda
+    image: onejev/qev:gguf-cuda
     profiles: ["gguf"]
 
-  # llama-server on AMD / ROCm.
-  llama-server-rocm:
-    <<: [*llama, *gpu-amd]
-    image: ghcr.io/ggml-org/llama.cpp:server-rocm
+  # llama.cpp on AMD / ROCm.
+  qev-gguf-rocm:
+    <<: [*qev-gguf, *gpu-amd]
+    build:
+      context: .
+      target: gguf
+      args:
+        LLAMA_IMAGE: ghcr.io/ggml-org/llama.cpp:server-rocm
+    image: onejev/qev:gguf-rocm
     profiles: ["gguf-rocm"]
 
-  # llama-server on AMD / Intel via Vulkan.
-  llama-server-vulkan:
-    <<: [*llama, *gpu-vulkan]
-    image: ghcr.io/ggml-org/llama.cpp:server-vulkan
+  # llama.cpp on AMD / Intel via Vulkan.
+  qev-gguf-vulkan:
+    <<: [*qev-gguf, *gpu-vulkan]
+    build:
+      context: .
+      target: gguf
+      args:
+        LLAMA_IMAGE: ghcr.io/ggml-org/llama.cpp:server-vulkan
+    image: onejev/qev:gguf-vulkan
     profiles: ["vulkan"]
 
-  # llama-server on CPU (no GPU).
-  llama-server-cpu:
-    <<: *llama
-    image: ghcr.io/ggml-org/llama.cpp:server
-    profiles: ["cpu"]
-
-  # qev API shared by every llama.cpp backend.
-  qev-gguf:
+  # llama.cpp on CPU (no GPU).
+  qev-gguf-cpu:
     <<: *qev-gguf
-    profiles: ["gguf", "gguf-rocm", "vulkan", "cpu"]
-
-  # Playground / web UI. Proxies /v1 and /health to the backend above.
-  playground:
-    image: nginx:1.27-alpine
-    environment:
-      QEV_UPSTREAM: ${QEV_UPSTREAM:-qev:8000}
-    volumes:
-      - ./qev/playground/index.html:/usr/share/nginx/html/index.html:ro
-      - ./docker/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
-    ports:
-      - "${PLAYGROUND_PORT:-8080}:80"
-    restart: unless-stopped
+    build:
+      context: .
+      target: gguf
+      args:
+        LLAMA_IMAGE: ghcr.io/ggml-org/llama.cpp:server
+    image: onejev/qev:gguf-cpu
+    profiles: ["cpu"]
 
 volumes:
   hf-cache:

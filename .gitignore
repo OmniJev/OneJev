@@ -12,4 +12,3 @@ serve.py
 data/
 .env
 .venv/
-models/

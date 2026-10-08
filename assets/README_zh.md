@@ -73,7 +73,7 @@ qev serve --gguf mradermacher/OneJev-4B-GGUF:Q8_0 --port 8000
 
 ### 选项 C：Docker
 
-仓库附带 Compose 栈，会自动检测硬件并启动一种后端。使用 llama.cpp 配置时，请先把 GGUF 模型及其 `mmproj` 文件放入 `./models`。
+仓库附带 Compose 栈，会自动检测硬件并启动一种后端。llama.cpp 配置首次启动时会下载 `mradermacher/OneJev-4B-GGUF:Q8_0`；换尺寸或量化请在 `.env` 中设置 `QEV_GGUF`。
 
 ```bash
 cp .env.example .env                 # 受限/私有仓库请设置 HF_TOKEN
@@ -82,7 +82,7 @@ cp .env.example .env                 # 受限/私有仓库请设置 HF_TOKEN
 ./scripts/start.sh down              # 停止所有 profile
 ```
 
-用 `./scripts/start.sh <torch|rocm|vulkan|gguf|gguf-rocm|cpu>` 强制指定后端（加 `--build` 重新构建）。`torch`/`rocm` 在 :8000 提供接口，llama.cpp 配置在 :8001，Playground 界面在 :8080。Windows 上仅支持 `torch`（NVIDIA）和 `cpu`。
+用 `./scripts/start.sh <torch|rocm|vulkan|gguf|gguf-rocm|cpu>` 强制指定后端（加 `--build` 重新构建）。所有配置都在 :8000 提供接口和 Playground 界面。Windows 上仅支持 `torch`（NVIDIA）和 `cpu`。
 
 ### 发起请求
 
