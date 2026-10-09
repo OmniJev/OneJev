@@ -73,16 +73,16 @@ qev serve --gguf mradermacher/OneJev-4B-GGUF:Q8_0 --port 8000
 
 ### 選択肢 C：Docker
 
-リポジトリには、ハードウェアを検出してバックエンドを 1 つ起動する Compose スタックが含まれています。llama.cpp の profile は初回起動時に `mradermacher/OneJev-4B-GGUF:Q8_0` をダウンロードします。別のサイズや量子化は `.env` の `QEV_GGUF` で指定してください。
+リポジトリには、ハードウェアを検出してバックエンドを 1 つ起動する Compose スタックが含まれています。llama.cpp の profile は初回起動時に `mradermacher/OneJev-4B-GGUF:Q8_0` をダウンロードします。別のサイズや量子化は `docker/.env` の `QEV_GGUF` で指定してください。
 
 ```bash
-cp .env.example .env                 # 非公開リポジトリでは HF_TOKEN を設定
-./scripts/start.sh                   # 自動検出（Windows：.\scripts\start.ps1）
-./scripts/start.sh logs              # ログを追う
-./scripts/start.sh down              # すべての profile を停止
+cp docker/.env.example docker/.env   # 非公開リポジトリでは HF_TOKEN を設定
+./docker/start.sh                    # 自動検出（Windows：.\docker\start.ps1）
+./docker/start.sh logs               # ログを追う
+./docker/start.sh down               # すべての profile を停止
 ```
 
-`./scripts/start.sh <torch|rocm|vulkan|gguf|gguf-rocm|cpu>` でバックエンドを強制できます（`--build` で再ビルド）。どの profile も :8000 で API と Playground UI を提供します。Windows では `torch`（NVIDIA）と `cpu` のみ利用できます。
+`./docker/start.sh <torch|rocm|vulkan|gguf|gguf-rocm|cpu>` でバックエンドを強制できます（`--build` で再ビルド）。どの profile も :8000 で API と Playground UI を提供します。Windows では `torch`（NVIDIA）と `cpu` のみ利用できます。
 
 ### リクエストを送る
 

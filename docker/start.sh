@@ -1,17 +1,16 @@
 #!/usr/bin/env bash
 # Detect the GPU backend and start the matching OneJev compose stack.
 #
-#   ./scripts/start.sh                 # detect hardware, start detached
-#   ./scripts/start.sh vulkan --build  # force a backend and rebuild
-#   ./scripts/start.sh down            # stop every profile
-#   ./scripts/start.sh logs            # follow logs of the running backend
+#   ./docker/start.sh                 # detect hardware, start detached
+#   ./docker/start.sh vulkan --build  # force a backend and rebuild
+#   ./docker/start.sh down            # stop every profile
+#   ./docker/start.sh logs            # follow logs of the running backend
 #
 # backend: auto (default) | torch (NVIDIA CUDA) | rocm (AMD) | vulkan (AMD/Intel)
 #          | gguf (NVIDIA + GGUF) | gguf-rocm (AMD + GGUF) | cpu (no GPU)
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$ROOT"
+cd "$(dirname "${BASH_SOURCE[0]}")"
 
 ALL_PROFILES=(torch rocm gguf gguf-rocm vulkan cpu)
 
@@ -20,8 +19,8 @@ die()  { printf '\033[31merror: %s\033[0m\n' "$*" >&2; exit 1; }
 
 usage() {
   cat <<'EOF'
-Usage: scripts/start.sh [backend] [options]
-       scripts/start.sh down | logs | ps
+Usage: docker/start.sh [backend] [options]
+       docker/start.sh down | logs | ps
 
 backend   auto (default), torch (NVIDIA/CUDA), rocm (AMD/ROCm),
           vulkan (AMD/Intel), gguf (NVIDIA + GGUF), gguf-rocm (AMD + GGUF),
@@ -118,6 +117,6 @@ case "$action" in
     svc="$(docker compose "${profile_args[@]}" ps --services | head -n1)"
     port="$(docker compose "${profile_args[@]}" port "$svc" 8000 2>/dev/null | head -n1 || true)"
     log "API and playground: http://localhost:${port##*:}"
-    log "Stop: ./scripts/start.sh down"
+    log "Stop: ./docker/start.sh down"
     ;;
 esac

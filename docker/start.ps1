@@ -3,9 +3,9 @@
 .SYNOPSIS
   Detect the GPU backend and start the matching OneJev compose stack.
 .EXAMPLE
-  .\scripts\start.ps1
-  .\scripts\start.ps1 -Backend vulkan -Build
-  .\scripts\start.ps1 -Action down
+  .\docker\start.ps1
+  .\docker\start.ps1 -Backend vulkan -Build
+  .\docker\start.ps1 -Action down
 #>
 [CmdletBinding()]
 param(
@@ -31,7 +31,7 @@ function Get-Backend {
   return 'cpu'
 }
 
-Set-Location (Split-Path -Parent $PSScriptRoot)
+Set-Location $PSScriptRoot
 
 if (-not (Get-Command docker -ErrorAction SilentlyContinue)) { throw 'docker not found' }
 & docker compose version *> $null
@@ -81,6 +81,6 @@ switch ($Action) {
     $addr = if ($svc) { & docker compose @profileArgs port $svc 8000 | Select-Object -First 1 }
     $port = if ($addr) { ($addr -split ':')[-1] } else { '8000' }
     Write-Host "API and playground: http://localhost:$port"
-    Write-Host "Stop: .\scripts\start.ps1 -Action down"
+    Write-Host "Stop: .\docker\start.ps1 -Action down"
   }
 }

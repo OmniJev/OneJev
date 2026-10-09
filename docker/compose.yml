@@ -8,7 +8,7 @@ name: onejev
 #   vulkan     llama.cpp on AMD / Intel (Vulkan)
 #   cpu        llama.cpp on CPU (fallback)
 #
-# Prefer scripts/start.sh (auto-detects) or `docker compose --profile <name> up`.
+# Prefer docker/start.sh (auto-detects) or `docker compose --profile <name> up` in docker/.
 # Do not combine two backend profiles: they all bind :8000.
 
 # NVIDIA GPU reservation.
@@ -22,7 +22,7 @@ x-gpu-nvidia: &gpu-nvidia
             capabilities: [gpu]
 
 # AMD passthrough. seccomp:unconfined is required for ROCm.
-# GID defaults are Debian/Ubuntu; scripts/start.sh auto-detects the real ones.
+# GID defaults are Debian/Ubuntu; docker/start.sh auto-detects the real ones.
 x-gpu-amd: &gpu-amd
   devices:
     - /dev/kfd
@@ -73,7 +73,8 @@ services:
   # PyTorch / CUDA server.
   qev:
     build:
-      context: .
+      context: ..
+      dockerfile: docker/Dockerfile
       target: torch
       args:
         TORCH_INDEX_URL: ${TORCH_INDEX_URL:-}
@@ -103,7 +104,8 @@ services:
   # PyTorch / ROCm server.
   qev-rocm:
     build:
-      context: .
+      context: ..
+      dockerfile: docker/Dockerfile
       target: rocm
       args:
         TORCH_ROCM_INDEX_URL: ${TORCH_ROCM_INDEX_URL:-https://download.pytorch.org/whl/rocm6.3}
@@ -136,7 +138,8 @@ services:
   qev-gguf:
     <<: [*qev-gguf, *gpu-nvidia]
     build:
-      context: .
+      context: ..
+      dockerfile: docker/Dockerfile
       target: gguf
       args:
         LLAMA_IMAGE: ghcr.io/ggml-org/llama.cpp:server-cuda
@@ -147,7 +150,8 @@ services:
   qev-gguf-rocm:
     <<: [*qev-gguf, *gpu-amd]
     build:
-      context: .
+      context: ..
+      dockerfile: docker/Dockerfile
       target: gguf
       args:
         LLAMA_IMAGE: ghcr.io/ggml-org/llama.cpp:server-rocm
@@ -158,7 +162,8 @@ services:
   qev-gguf-vulkan:
     <<: [*qev-gguf, *gpu-vulkan]
     build:
-      context: .
+      context: ..
+      dockerfile: docker/Dockerfile
       target: gguf
       args:
         LLAMA_IMAGE: ghcr.io/ggml-org/llama.cpp:server-vulkan
@@ -169,7 +174,8 @@ services:
   qev-gguf-cpu:
     <<: *qev-gguf
     build:
-      context: .
+      context: ..
+      dockerfile: docker/Dockerfile
       target: gguf
       args:
         LLAMA_IMAGE: ghcr.io/ggml-org/llama.cpp:server

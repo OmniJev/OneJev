@@ -77,17 +77,17 @@ qev serve --gguf mradermacher/OneJev-4B-GGUF:Q8_0 --port 8000
 ### Option C: Docker
 
 The repo ships a Compose stack that detects your hardware and starts one backend.
-The llama.cpp profiles download `mradermacher/OneJev-4B-GGUF:Q8_0` on first start; set `QEV_GGUF` in `.env` for
-another size or quant.
+The llama.cpp profiles download `mradermacher/OneJev-4B-GGUF:Q8_0` on first start; set `QEV_GGUF` in `docker/.env`
+for another size or quant.
 
 ```bash
-cp .env.example .env                 # set HF_TOKEN for gated/private repos
-./scripts/start.sh                   # auto-detect (Windows: .\scripts\start.ps1)
-./scripts/start.sh logs              # follow logs
-./scripts/start.sh down              # stop every profile
+cp docker/.env.example docker/.env   # set HF_TOKEN for gated/private repos
+./docker/start.sh                    # auto-detect (Windows: .\docker\start.ps1)
+./docker/start.sh logs               # follow logs
+./docker/start.sh down               # stop every profile
 ```
 
-Force a backend with `./scripts/start.sh <torch|rocm|vulkan|gguf|gguf-rocm|cpu>`
+Force a backend with `./docker/start.sh <torch|rocm|vulkan|gguf|gguf-rocm|cpu>`
 (add `--build` to rebuild). Every profile serves the API and the playground on :8000.
 On Windows only `torch` (NVIDIA) and `cpu` are available.
 
