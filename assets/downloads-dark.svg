@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="300" viewBox="0 0 920 300" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">
+<rect width="920" height="300" fill="#1e1e1e"/>
+<line x1="152" y1="248.0" x2="894" y2="248.0" stroke="#3a3a3a" stroke-width="1"/>
+<line x1="152" y1="176.7" x2="894" y2="176.7" stroke="#3a3a3a" stroke-width="1"/>
+<text x="158" y="170.7" font-size="12" fill="#9a9a9a">20k</text>
+<line x1="152" y1="105.3" x2="894" y2="105.3" stroke="#3a3a3a" stroke-width="1"/>
+<text x="158" y="99.3" font-size="12" fill="#9a9a9a">40k</text>
+<line x1="152" y1="34.0" x2="894" y2="34.0" stroke="#3a3a3a" stroke-width="1"/>
+<text x="158" y="28.0" font-size="12" fill="#9a9a9a">60k</text>
+<polygon points="152.0,243.1 219.5,229.2 286.9,214.0 354.4,174.5 421.8,165.3 489.3,157.5 556.7,144.8 624.2,139.0 691.6,115.0 759.1,109.4 826.5,77.2 894.0,77.2 894.0,248.0 152.0,248.0" fill="#d45bb6"/>
+<polyline points="152.0,243.1 219.5,229.2 286.9,214.0 354.4,174.5 421.8,165.3 489.3,157.5 556.7,144.8 624.2,139.0 691.6,115.0 759.1,109.4 826.5,77.2 894.0,77.2" fill="none" stroke="#fefefe" stroke-width="2"/>
+<rect x="149.5" y="240.6" width="5" height="5" fill="#fefefe"/>
+<rect x="217.0" y="226.7" width="5" height="5" fill="#fefefe"/>
+<rect x="284.4" y="211.5" width="5" height="5" fill="#fefefe"/>
+<rect x="351.9" y="172.0" width="5" height="5" fill="#fefefe"/>
+<rect x="419.3" y="162.8" width="5" height="5" fill="#fefefe"/>
+<rect x="486.8" y="155.0" width="5" height="5" fill="#fefefe"/>
+<rect x="554.2" y="142.3" width="5" height="5" fill="#fefefe"/>
+<rect x="621.7" y="136.5" width="5" height="5" fill="#fefefe"/>
+<rect x="689.1" y="112.5" width="5" height="5" fill="#fefefe"/>
+<rect x="756.6" y="106.9" width="5" height="5" fill="#fefefe"/>
+<rect x="824.0" y="74.7" width="5" height="5" fill="#fefefe"/>
+<rect x="891.5" y="74.7" width="5" height="5" fill="#fefefe"/>
+<line x1="152" y1="248" x2="894" y2="248" stroke="#fefefe" stroke-width="2"/>
+<text x="152.0" y="268" text-anchor="start" font-size="12" fill="#9a9a9a">2026-09-28</text>
+<text x="894.0" y="268" text-anchor="end" font-size="12" fill="#9a9a9a">2026-10-09</text>
+<text x="12" y="60" font-size="32" font-weight="700" fill="#fefefe">47,874</text>
+<text x="12" y="80" font-size="12" fill="#9a9a9a">downloads</text>
+<text x="12" y="106" font-size="12" fill="#9a9a9a">Hugging Face</text>
+</svg>

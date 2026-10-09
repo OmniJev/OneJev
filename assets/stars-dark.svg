@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="300" viewBox="0 0 920 300" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">
+<rect width="920" height="300" fill="#1e1e1e"/>
+<line x1="152" y1="248.0" x2="894" y2="248.0" stroke="#3a3a3a" stroke-width="1"/>
+<line x1="152" y1="176.7" x2="894" y2="176.7" stroke="#3a3a3a" stroke-width="1"/>
+<text x="158" y="170.7" font-size="12" fill="#9a9a9a">50</text>
+<line x1="152" y1="105.3" x2="894" y2="105.3" stroke="#3a3a3a" stroke-width="1"/>
+<text x="158" y="99.3" font-size="12" fill="#9a9a9a">100</text>
+<line x1="152" y1="34.0" x2="894" y2="34.0" stroke="#3a3a3a" stroke-width="1"/>
+<text x="158" y="28.0" font-size="12" fill="#9a9a9a">150</text>
+<polygon points="152.0,243.7 213.8,232.3 275.7,218.0 337.5,155.3 399.3,99.6 461.2,93.9 523.0,86.8 584.8,85.4 646.7,72.5 708.5,54.0 770.3,48.3 832.2,38.3 894.0,36.9 894.0,248.0 152.0,248.0" fill="#d45bb6"/>
+<polyline points="152.0,243.7 213.8,232.3 275.7,218.0 337.5,155.3 399.3,99.6 461.2,93.9 523.0,86.8 584.8,85.4 646.7,72.5 708.5,54.0 770.3,48.3 832.2,38.3 894.0,36.9" fill="none" stroke="#fefefe" stroke-width="2"/>
+<rect x="149.5" y="241.2" width="5" height="5" fill="#fefefe"/>
+<rect x="211.3" y="229.8" width="5" height="5" fill="#fefefe"/>
+<rect x="273.2" y="215.5" width="5" height="5" fill="#fefefe"/>
+<rect x="335.0" y="152.8" width="5" height="5" fill="#fefefe"/>
+<rect x="396.8" y="97.1" width="5" height="5" fill="#fefefe"/>
+<rect x="458.7" y="91.4" width="5" height="5" fill="#fefefe"/>
+<rect x="520.5" y="84.3" width="5" height="5" fill="#fefefe"/>
+<rect x="582.3" y="82.9" width="5" height="5" fill="#fefefe"/>
+<rect x="644.2" y="70.0" width="5" height="5" fill="#fefefe"/>
+<rect x="706.0" y="51.5" width="5" height="5" fill="#fefefe"/>
+<rect x="767.8" y="45.8" width="5" height="5" fill="#fefefe"/>
+<rect x="829.7" y="35.8" width="5" height="5" fill="#fefefe"/>
+<rect x="891.5" y="34.4" width="5" height="5" fill="#fefefe"/>
+<line x1="152" y1="248" x2="894" y2="248" stroke="#fefefe" stroke-width="2"/>
+<text x="152.0" y="268" text-anchor="start" font-size="12" fill="#9a9a9a">2026-09-27</text>
+<text x="894.0" y="268" text-anchor="end" font-size="12" fill="#9a9a9a">2026-10-09</text>
+<text x="12" y="60" font-size="32" font-weight="700" fill="#fefefe">148</text>
+<text x="12" y="80" font-size="12" fill="#9a9a9a">stars</text>
+<text x="12" y="106" font-size="12" fill="#9a9a9a">OmniJev/OneJev</text>
+</svg>

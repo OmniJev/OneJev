@@ -181,3 +181,15 @@ qev serve --model train/runs/onejev_4b/final --port 8000
 ## License
 
 [Apache 2.0](LICENSE)
+
+## Downloads and stars
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/downloads-dark.svg">
+  <img alt="OneJev downloads on Hugging Face" src="assets/downloads.svg" width="100%">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/stars-dark.svg">
+  <img alt="Stars on GitHub" src="assets/stars.svg" width="100%">
+</picture>
