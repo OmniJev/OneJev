@@ -168,3 +168,10 @@ qev serve --model train/runs/onejev_4b/final --port 8000
 ## 许可证
 
 [Apache 2.0](../LICENSE)
+
+## 星标与下载量
+
+<p>
+  <a href="https://star-history.com/#OmniJev/OneJev&Date"><img src="https://api.star-history.com/svg?repos=OmniJev/OneJev&type=Date" alt="OneJev 在 GitHub 上的星标" width="49%"></a>
+  <a href="https://huggingface.co/OmniJev"><img src="downloads.svg" alt="OneJev 在 Hugging Face 上的下载量" width="49%"></a>
+</p>

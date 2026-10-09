@@ -166,3 +166,10 @@ qev serve --model train/runs/onejev_4b/final --port 8000
 ## ライセンス
 
 [Apache 2.0](../LICENSE)
+
+## スターとダウンロード数
+
+<p>
+  <a href="https://star-history.com/#OmniJev/OneJev&Date"><img src="https://api.star-history.com/svg?repos=OmniJev/OneJev&type=Date" alt="GitHub での OneJev のスター数" width="49%"></a>
+  <a href="https://huggingface.co/OmniJev"><img src="downloads.svg" alt="Hugging Face での OneJev のダウンロード数" width="49%"></a>
+</p>
