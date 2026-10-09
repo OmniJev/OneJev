@@ -1,6 +1,6 @@
 """Count OneJev downloads on Hugging Face and draw them like star-history.com.
 
-    python scripts/stats.py
+    python .github/stats.py
 
 Appends today's numbers to assets/downloads.csv and redraws assets/downloads.svg.
 """

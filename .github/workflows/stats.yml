@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install fonttools
-      - run: python scripts/stats.py
+      - run: python .github/stats.py
       - run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
