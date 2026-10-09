@@ -10,3 +10,6 @@ site/
 video/
 serve.py
 data/
+.env
+.venv/
+models/

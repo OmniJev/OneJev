@@ -71,6 +71,19 @@ pip install git+https://github.com/OmniJev/OneJev.git
 qev serve --gguf mradermacher/OneJev-4B-GGUF:Q8_0 --port 8000
 ```
 
+### 选项 C：Docker
+
+仓库附带 Compose 栈，会自动检测硬件并启动一种后端。使用 llama.cpp 配置时，请先把 GGUF 模型及其 `mmproj` 文件放入 `./models`。
+
+```bash
+cp .env.example .env                 # 受限/私有仓库请设置 HF_TOKEN
+./scripts/start.sh                   # 自动检测（Windows：.\scripts\start.ps1）
+./scripts/start.sh logs              # 跟踪日志
+./scripts/start.sh down              # 停止所有 profile
+```
+
+用 `./scripts/start.sh <torch|rocm|vulkan|gguf|gguf-rocm|cpu>` 强制指定后端（加 `--build` 重新构建）。`torch`/`rocm` 在 :8000 提供接口，llama.cpp 配置在 :8001，Playground 界面在 :8080。Windows 上仅支持 `torch`（NVIDIA）和 `cpu`。
+
 ### 发起请求
 
 两种后端都在 `http://localhost:8000` 提供相同接口。在另一个终端中，用你自己的 `screenshot.png` 运行示例：

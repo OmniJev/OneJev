@@ -1,0 +1,212 @@
+name: onejev
+
+# Backend profiles. Run one at a time:
+#   torch      NVIDIA / CUDA PyTorch server        API :8000
+#   rocm       AMD / ROCm PyTorch server           API :8000
+#   gguf       llama.cpp on NVIDIA / CUDA          API :8001
+#   gguf-rocm  llama.cpp on AMD / ROCm             API :8001
+#   vulkan     llama.cpp on AMD / Intel (Vulkan)   API :8001
+#   cpu        llama.cpp on CPU (fallback)         API :8001
+#
+# Prefer scripts/start.sh (auto-detects) or `docker compose --profile <name> up`.
+# Do not combine two backend profiles: qev/qev-rocm both bind :8000 and every
+# llama.cpp backend answers to the internal alias `llama`.
+
+# NVIDIA GPU reservation.
+x-gpu-nvidia: &gpu-nvidia
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            count: all
+            capabilities: [gpu]
+
+# AMD passthrough. seccomp:unconfined is required for ROCm.
+# GID defaults are Debian/Ubuntu; scripts/start.sh auto-detects the real ones.
+x-gpu-amd: &gpu-amd
+  devices:
+    - /dev/kfd
+    - /dev/dri
+  group_add:
+    - "${AMD_VIDEO_GID:-44}"
+    - "${AMD_RENDER_GID:-109}"
+  security_opt:
+    - seccomp:unconfined
+
+# Vulkan passthrough (AMD/Intel render nodes).
+x-gpu-vulkan: &gpu-vulkan
+  devices:
+    - /dev/dri
+  group_add:
+    - "${DRI_RENDER_GID:-109}"
+  security_opt:
+    - seccomp:unconfined
+
+# Shared llama-server: command, model mount, healthcheck, network alias `llama`.
+x-llama: &llama
+  command:
+    - --host
+    - 0.0.0.0
+    - --port
+    - "8080"
+    - -m
+    - ${LLAMA_MODEL:-/models/model.gguf}
+    - --mmproj
+    - ${LLAMA_MMPROJ:-/models/mmproj.gguf}
+    - -ngl
+    - ${LLAMA_N_GPU_LAYERS:-99}
+    - -c
+    - ${LLAMA_CTX:-65536}
+    - -np
+    - ${LLAMA_PARALLEL:-2}
+    - --image-min-tokens
+    - "64"
+    - --image-max-tokens
+    - "16384"
+  environment:
+    # Optional ROCm override for unknown gfx archs. Left without a value so it
+    # is injected only when the project environment provides it: an empty value
+    # makes ROCr force-empty the arch and hide every GPU.
+    HSA_OVERRIDE_GFX_VERSION:
+  volumes:
+    - ${LLAMA_MODELS_DIR:-./models}:/models:ro
+  healthcheck:
+    test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/health"]
+    interval: 10s
+    timeout: 5s
+    retries: 60
+    start_period: 120s
+  networks:
+    default:
+      aliases:
+        - llama
+  restart: unless-stopped
+
+# One qev API for every llama.cpp backend: waits for `llama:8080`, then serves.
+x-qev-gguf: &qev-gguf
+  build:
+    context: .
+    target: base
+  image: onejev/qev:base
+  entrypoint: ["/bin/sh", "-c"]
+  command:
+    - 'until curl -fsS http://llama:8080/health >/dev/null 2>&1; do sleep 2; done; exec qev serve --llama-url http://llama:8080 --tokenizer "$QEV_MODEL" --name "$QEV_GGUF_NAME" --host 0.0.0.0 --port 8000'
+  ports:
+    - "${QEV_GGUF_PORT:-8001}:8000"
+  environment:
+    HF_HOME: /data/hf
+    HF_TOKEN: ${HF_TOKEN:-}
+    QEV_DEBIAS: ${QEV_DEBIAS:-1}
+    QEV_MODEL: ${QEV_MODEL:-OmniJev/OneJev-4B}
+    QEV_GGUF_NAME: ${QEV_GGUF_NAME:-OneJev-4B}
+  volumes:
+    - hf-cache:/data/hf
+  restart: unless-stopped
+
+services:
+  # PyTorch / CUDA server.
+  qev:
+    build:
+      context: .
+      target: torch
+      args:
+        TORCH_INDEX_URL: ${TORCH_INDEX_URL:-https://download.pytorch.org/whl/cu124}
+    image: onejev/qev:torch
+    profiles: ["torch"]
+    command:
+      - serve
+      - --model
+      - ${QEV_MODEL:-OmniJev/OneJev-4B}
+      - --multimodal
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+    ports:
+      - "${QEV_PORT:-8000}:8000"
+    environment:
+      HF_HOME: /data/hf
+      HF_TOKEN: ${HF_TOKEN:-}
+      QEV_DEBIAS: ${QEV_DEBIAS:-1}
+    volumes:
+      - hf-cache:/data/hf
+    shm_size: "16gb"
+    restart: unless-stopped
+    <<: *gpu-nvidia
+
+  # PyTorch / ROCm server.
+  qev-rocm:
+    build:
+      context: .
+      target: rocm
+      args:
+        TORCH_ROCM_INDEX_URL: ${TORCH_ROCM_INDEX_URL:-https://download.pytorch.org/whl/rocm6.3}
+    image: onejev/qev:rocm
+    profiles: ["rocm"]
+    command:
+      - serve
+      - --model
+      - ${QEV_MODEL:-OmniJev/OneJev-4B}
+      - --multimodal
+      - --no-cuda-graphs
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+    ports:
+      - "${QEV_PORT:-8000}:8000"
+    environment:
+      HF_HOME: /data/hf
+      HF_TOKEN: ${HF_TOKEN:-}
+      QEV_DEBIAS: ${QEV_DEBIAS:-1}
+      HSA_OVERRIDE_GFX_VERSION:
+    volumes:
+      - hf-cache:/data/hf
+    shm_size: "16gb"
+    restart: unless-stopped
+    <<: *gpu-amd
+
+  # llama-server on NVIDIA / CUDA. Put model + mmproj *.gguf in ./models.
+  llama-server:
+    <<: [*llama, *gpu-nvidia]
+    image: ghcr.io/ggml-org/llama.cpp:server-cuda
+    profiles: ["gguf"]
+
+  # llama-server on AMD / ROCm.
+  llama-server-rocm:
+    <<: [*llama, *gpu-amd]
+    image: ghcr.io/ggml-org/llama.cpp:server-rocm
+    profiles: ["gguf-rocm"]
+
+  # llama-server on AMD / Intel via Vulkan.
+  llama-server-vulkan:
+    <<: [*llama, *gpu-vulkan]
+    image: ghcr.io/ggml-org/llama.cpp:server-vulkan
+    profiles: ["vulkan"]
+
+  # llama-server on CPU (no GPU).
+  llama-server-cpu:
+    <<: *llama
+    image: ghcr.io/ggml-org/llama.cpp:server
+    profiles: ["cpu"]
+
+  # qev API shared by every llama.cpp backend.
+  qev-gguf:
+    <<: *qev-gguf
+    profiles: ["gguf", "gguf-rocm", "vulkan", "cpu"]
+
+  # Playground / web UI. Proxies /v1 and /health to the backend above.
+  playground:
+    image: nginx:1.27-alpine
+    environment:
+      QEV_UPSTREAM: ${QEV_UPSTREAM:-qev:8000}
+    volumes:
+      - ./qev/playground/index.html:/usr/share/nginx/html/index.html:ro
+      - ./docker/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+    ports:
+      - "${PLAYGROUND_PORT:-8080}:80"
+    restart: unless-stopped
+
+volumes:
+  hf-cache:

@@ -74,6 +74,23 @@ pip install git+https://github.com/OmniJev/OneJev.git
 qev serve --gguf mradermacher/OneJev-4B-GGUF:Q8_0 --port 8000
 ```
 
+### Option C: Docker
+
+The repo ships a Compose stack that detects your hardware and starts one backend.
+For the llama.cpp profiles, put your GGUF model and its `mmproj` file in `./models` first.
+
+```bash
+cp .env.example .env                 # set HF_TOKEN for gated/private repos
+./scripts/start.sh                   # auto-detect (Windows: .\scripts\start.ps1)
+./scripts/start.sh logs              # follow logs
+./scripts/start.sh down              # stop every profile
+```
+
+Force a backend with `./scripts/start.sh <torch|rocm|vulkan|gguf|gguf-rocm|cpu>`
+(add `--build` to rebuild). The `torch`/`rocm` profiles serve the API on :8000,
+the llama.cpp profiles on :8001, and the playground UI on :8080. On Windows only
+`torch` (NVIDIA) and `cpu` are available.
+
 ### Send a request
 
 Both backends serve the same API at `http://localhost:8000`. In another terminal, run this example with your own
