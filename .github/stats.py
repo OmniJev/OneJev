@@ -19,7 +19,7 @@ from fontTools.ttLib import TTFont
 API = "https://huggingface.co/api/models"
 OWNER = "OmniJev"
 FAMILY = "OmniJev/OneJev"
-KINDS = ("quantized", "finetune", "adapter", "merge")
+KINDS = ("quantized",)
 LEDGER = "assets/downloads.csv"
 FONT = "https://cdn.jsdelivr.net/npm/chart.xkcd@2.0.12/dist/chart.xkcd.min.js"
 AVATAR = "https://github.com/OmniJev.png?size=44"

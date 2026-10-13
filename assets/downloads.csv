@@ -13,7 +13,6 @@ date,repo,side,downloads
 2026-09-28,mradermacher/OneJev-27B-GGUF,community,1
 2026-09-28,mradermacher/OneJev-4B-GGUF,community,496
 2026-09-28,mradermacher/OneJev-9B-GGUF,community,382
-2026-09-28,nightmedia/Qwen3.5-9B-B2-Fable-Agent-OneJev-Holodeck-Lounge-q8-hi-mlx,community,0
 2026-09-28,prithivMLmods/OneJev-4B-GGUF,community,0
 2026-09-28,prithivMLmods/OneJev-9B-GGUF,community,0
 2026-09-29,OmniJev/OneJev-0.8B,ours,360
@@ -25,8 +24,6 @@ date,repo,side,downloads
 2026-09-29,mradermacher/OneJev-27B-GGUF,community,742
 2026-09-29,mradermacher/OneJev-4B-GGUF,community,903
 2026-09-29,mradermacher/OneJev-9B-GGUF,community,777
-2026-09-29,nightmedia/Qwen3.5-9B-B2-Fable-Agent-OneJev-Holodeck-Lounge-q8-hi-mlx,community,19
-2026-09-29,nightmedia/Qwen3.5-9B-Seven-q8-hi-mlx,community,72
 2026-09-29,prithivMLmods/OneJev-4B-GGUF,community,493
 2026-09-29,prithivMLmods/OneJev-9B-GGUF,community,643
 2026-09-30,OmniJev/OneJev-0.8B,ours,746
@@ -42,8 +39,6 @@ date,repo,side,downloads
 2026-09-30,mradermacher/OneJev-27B-GGUF,community,996
 2026-09-30,mradermacher/OneJev-4B-GGUF,community,967
 2026-09-30,mradermacher/OneJev-9B-GGUF,community,810
-2026-09-30,nightmedia/Qwen3.5-9B-B2-Fable-Agent-OneJev-Holodeck-Lounge-q8-hi-mlx,community,36
-2026-09-30,nightmedia/Qwen3.5-9B-Seven-q8-hi-mlx,community,131
 2026-09-30,prithivMLmods/OneJev-4B-GGUF,community,682
 2026-09-30,prithivMLmods/OneJev-9B-GGUF,community,824
 2026-10-01,OmniJev/OneJev-0.8B,ours,978
@@ -59,8 +54,6 @@ date,repo,side,downloads
 2026-10-01,mradermacher/OneJev-27B-GGUF,community,1043
 2026-10-01,mradermacher/OneJev-4B-GGUF,community,1176
 2026-10-01,mradermacher/OneJev-9B-GGUF,community,843
-2026-10-01,nightmedia/Qwen3.5-9B-B2-Fable-Agent-OneJev-Holodeck-Lounge-q8-hi-mlx,community,44
-2026-10-01,nightmedia/Qwen3.5-9B-Seven-q8-hi-mlx,community,153
 2026-10-01,onnx-community/OneJev-0.8B-ONNX,community,19
 2026-10-01,prithivMLmods/OneJev-4B-GGUF,community,706
 2026-10-01,prithivMLmods/OneJev-9B-GGUF,community,841
@@ -77,8 +70,6 @@ date,repo,side,downloads
 2026-10-02,mradermacher/OneJev-27B-GGUF,community,1066
 2026-10-02,mradermacher/OneJev-4B-GGUF,community,1400
 2026-10-02,mradermacher/OneJev-9B-GGUF,community,871
-2026-10-02,nightmedia/Qwen3.5-9B-B2-Fable-Agent-OneJev-Holodeck-Lounge-q8-hi-mlx,community,62
-2026-10-02,nightmedia/Qwen3.5-9B-Seven-q8-hi-mlx,community,183
 2026-10-02,onnx-community/OneJev-0.8B-ONNX,community,46
 2026-10-02,prithivMLmods/OneJev-4B-GGUF,community,727
 2026-10-02,prithivMLmods/OneJev-9B-GGUF,community,860
@@ -95,8 +86,6 @@ date,repo,side,downloads
 2026-10-03,mradermacher/OneJev-27B-GGUF,community,1373
 2026-10-03,mradermacher/OneJev-4B-GGUF,community,1476
 2026-10-03,mradermacher/OneJev-9B-GGUF,community,893
-2026-10-03,nightmedia/Qwen3.5-9B-B2-Fable-Agent-OneJev-Holodeck-Lounge-q8-hi-mlx,community,81
-2026-10-03,nightmedia/Qwen3.5-9B-Seven-q8-hi-mlx,community,195
 2026-10-03,onnx-community/OneJev-0.8B-ONNX,community,52
 2026-10-03,prithivMLmods/OneJev-4B-GGUF,community,746
 2026-10-03,prithivMLmods/OneJev-9B-GGUF,community,885
@@ -113,8 +102,6 @@ date,repo,side,downloads
 2026-10-04,mradermacher/OneJev-27B-GGUF,community,1379
 2026-10-04,mradermacher/OneJev-4B-GGUF,community,1907
 2026-10-04,mradermacher/OneJev-9B-GGUF,community,896
-2026-10-04,nightmedia/Qwen3.5-9B-B2-Fable-Agent-OneJev-Holodeck-Lounge-q8-hi-mlx,community,97
-2026-10-04,nightmedia/Qwen3.5-9B-Seven-q8-hi-mlx,community,209
 2026-10-04,onnx-community/OneJev-0.8B-ONNX,community,56
 2026-10-04,prithivMLmods/OneJev-4B-GGUF,community,840
 2026-10-04,prithivMLmods/OneJev-9B-GGUF,community,895
@@ -131,8 +118,6 @@ date,repo,side,downloads
 2026-10-05,mradermacher/OneJev-27B-GGUF,community,1476
 2026-10-05,mradermacher/OneJev-4B-GGUF,community,2759
 2026-10-05,mradermacher/OneJev-9B-GGUF,community,986
-2026-10-05,nightmedia/Qwen3.5-9B-B2-Fable-Agent-OneJev-Holodeck-Lounge-q8-hi-mlx,community,115
-2026-10-05,nightmedia/Qwen3.5-9B-Seven-q8-hi-mlx,community,222
 2026-10-05,onnx-community/OneJev-0.8B-ONNX,community,62
 2026-10-05,prithivMLmods/OneJev-4B-GGUF,community,860
 2026-10-05,prithivMLmods/OneJev-9B-GGUF,community,951
@@ -149,9 +134,6 @@ date,repo,side,downloads
 2026-10-06,mradermacher/OneJev-27B-GGUF,community,2024
 2026-10-06,mradermacher/OneJev-4B-GGUF,community,2907
 2026-10-06,mradermacher/OneJev-9B-GGUF,community,1213
-2026-10-06,nightmedia/Qwen3.5-9B-B2-Fable-Agent-OneJev-Holodeck-Lounge-q8-hi-mlx,community,150
-2026-10-06,nightmedia/Qwen3.5-9B-Flow-dwq4-mlx,community,234
-2026-10-06,nightmedia/Qwen3.5-9B-Seven-q8-hi-mlx,community,261
 2026-10-06,onnx-community/OneJev-0.8B-ONNX,community,70
 2026-10-06,prithivMLmods/OneJev-4B-GGUF,community,874
 2026-10-06,prithivMLmods/OneJev-9B-GGUF,community,991
@@ -168,9 +150,6 @@ date,repo,side,downloads
 2026-10-07,mradermacher/OneJev-27B-GGUF,community,2054
 2026-10-07,mradermacher/OneJev-4B-GGUF,community,3405
 2026-10-07,mradermacher/OneJev-9B-GGUF,community,1306
-2026-10-07,nightmedia/Qwen3.5-9B-B2-Fable-Agent-OneJev-Holodeck-Lounge-q8-hi-mlx,community,176
-2026-10-07,nightmedia/Qwen3.5-9B-Flow-dwq4-mlx,community,255
-2026-10-07,nightmedia/Qwen3.5-9B-Seven-q8-hi-mlx,community,272
 2026-10-07,onnx-community/OneJev-0.8B-ONNX,community,74
 2026-10-07,prithivMLmods/OneJev-4B-GGUF,community,904
 2026-10-07,prithivMLmods/OneJev-9B-GGUF,community,997
@@ -187,9 +166,6 @@ date,repo,side,downloads
 2026-10-08,mradermacher/OneJev-27B-GGUF,community,2337
 2026-10-08,mradermacher/OneJev-4B-GGUF,community,4015
 2026-10-08,mradermacher/OneJev-9B-GGUF,community,2389
-2026-10-08,nightmedia/Qwen3.5-9B-B2-Fable-Agent-OneJev-Holodeck-Lounge-q8-hi-mlx,community,208
-2026-10-08,nightmedia/Qwen3.5-9B-Flow-dwq4-mlx,community,260
-2026-10-08,nightmedia/Qwen3.5-9B-Seven-q8-hi-mlx,community,296
 2026-10-08,onnx-community/OneJev-0.8B-ONNX,community,77
 2026-10-08,prithivMLmods/OneJev-4B-GGUF,community,921
 2026-10-08,prithivMLmods/OneJev-9B-GGUF,community,1001
@@ -206,10 +182,6 @@ date,repo,side,downloads
 2026-10-09,mradermacher/OneJev-27B-GGUF,community,2337
 2026-10-09,mradermacher/OneJev-4B-GGUF,community,4015
 2026-10-09,mradermacher/OneJev-9B-GGUF,community,2389
-2026-10-09,nightmedia/Qwen3.5-9B-B2-Fable-Agent-OneJev-Holodeck-Lounge-q8-hi-mlx,community,208
-2026-10-09,nightmedia/Qwen3.5-9B-BRO-q8-hi-mlx,community,0
-2026-10-09,nightmedia/Qwen3.5-9B-Flow-dwq4-mlx,community,260
-2026-10-09,nightmedia/Qwen3.5-9B-Seven-q8-hi-mlx,community,296
 2026-10-09,onnx-community/OneJev-0.8B-ONNX,community,77
 2026-10-09,prithivMLmods/OneJev-4B-GGUF,community,921
 2026-10-09,prithivMLmods/OneJev-9B-GGUF,community,1001
@@ -228,11 +200,6 @@ date,repo,side,downloads
 2026-10-10,mradermacher/OneJev-27B-GGUF,community,2505
 2026-10-10,mradermacher/OneJev-4B-GGUF,community,6803
 2026-10-10,mradermacher/OneJev-9B-GGUF,community,2482
-2026-10-10,nightmedia/Qwen3.5-9B-B2-Fable-Agent-OneJev-Holodeck-Lounge-q8-hi-mlx,community,230
-2026-10-10,nightmedia/Qwen3.5-9B-BRO-q8-hi-mlx,community,39
-2026-10-10,nightmedia/Qwen3.5-9B-Flow-dwq4-mlx,community,273
-2026-10-10,nightmedia/Qwen3.5-9B-Seven,community,0
-2026-10-10,nightmedia/Qwen3.5-9B-Seven-q8-hi-mlx,community,331
 2026-10-10,onnx-community/OneJev-0.8B-ONNX,community,101
 2026-10-10,prithivMLmods/OneJev-4B-GGUF,community,975
 2026-10-10,prithivMLmods/OneJev-9B-GGUF,community,1055
@@ -252,11 +219,6 @@ date,repo,side,downloads
 2026-10-11,mradermacher/OneJev-27B-GGUF,community,2531
 2026-10-11,mradermacher/OneJev-4B-GGUF,community,6836
 2026-10-11,mradermacher/OneJev-9B-GGUF,community,2523
-2026-10-11,nightmedia/Qwen3.5-9B-B2-Fable-Agent-OneJev-Holodeck-Lounge-q8-hi-mlx,community,240
-2026-10-11,nightmedia/Qwen3.5-9B-BRO-q8-hi-mlx,community,54
-2026-10-11,nightmedia/Qwen3.5-9B-Flow-dwq4-mlx,community,280
-2026-10-11,nightmedia/Qwen3.5-9B-Seven,community,0
-2026-10-11,nightmedia/Qwen3.5-9B-Seven-q8-hi-mlx,community,340
 2026-10-11,onnx-community/OneJev-0.8B-ONNX,community,113
 2026-10-11,prithivMLmods/OneJev-4B-GGUF,community,1006
 2026-10-11,prithivMLmods/OneJev-9B-GGUF,community,1094
@@ -280,11 +242,6 @@ date,repo,side,downloads
 2026-10-12,mradermacher/OneJev-27B-GGUF,community,2950
 2026-10-12,mradermacher/OneJev-4B-GGUF,community,7562
 2026-10-12,mradermacher/OneJev-9B-GGUF,community,3437
-2026-10-12,nightmedia/Qwen3.5-9B-B2-Fable-Agent-OneJev-Holodeck-Lounge-q8-hi-mlx,community,252
-2026-10-12,nightmedia/Qwen3.5-9B-BRO-q8-hi-mlx,community,67
-2026-10-12,nightmedia/Qwen3.5-9B-Flow-dwq4-mlx,community,286
-2026-10-12,nightmedia/Qwen3.5-9B-Seven,community,0
-2026-10-12,nightmedia/Qwen3.5-9B-Seven-q8-hi-mlx,community,353
 2026-10-12,onnx-community/OneJev-0.8B-ONNX,community,125
 2026-10-12,prithivMLmods/OneJev-4B-GGUF,community,1032
 2026-10-12,prithivMLmods/OneJev-9B-GGUF,community,1111
@@ -299,6 +256,7 @@ date,repo,side,downloads
 2026-10-13,OmniJev/OneJev-9B,ours,608
 2026-10-13,OmniJev/OneJev1.5-0.8B,ours,30
 2026-10-13,OmniJev/OneJev1.5-27B,ours,14
+2026-10-13,OmniJev/OneJev1.5-4B,ours,0
 2026-10-13,OmniJev/OneJev1.5-9B,ours,33
 2026-10-13,Roy3838/OneJev-0.8B-GGUF,community,102
 2026-10-13,bartowski/OmniJev_OneJev-0.8B-GGUF,community,4395
@@ -312,11 +270,6 @@ date,repo,side,downloads
 2026-10-13,mradermacher/OneJev1.5-0.8B-GGUF,community,366
 2026-10-13,mradermacher/OneJev1.5-27B-GGUF,community,5
 2026-10-13,mradermacher/OneJev1.5-9B-GGUF,community,0
-2026-10-13,nightmedia/Qwen3.5-9B-B2-Fable-Agent-OneJev-Holodeck-Lounge-q8-hi-mlx,community,257
-2026-10-13,nightmedia/Qwen3.5-9B-BRO-q8-hi-mlx,community,72
-2026-10-13,nightmedia/Qwen3.5-9B-Flow-dwq4-mlx,community,292
-2026-10-13,nightmedia/Qwen3.5-9B-Seven,community,0
-2026-10-13,nightmedia/Qwen3.5-9B-Seven-q8-hi-mlx,community,373
 2026-10-13,onnx-community/OneJev-0.8B-ONNX,community,130
 2026-10-13,prithivMLmods/OmniJev-OneJev1.5-27B-GGUF,community,0
 2026-10-13,prithivMLmods/OmniJev-OneJev1.5-27B-MLX,community,0
