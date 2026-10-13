@@ -48,7 +48,7 @@ x-qev-gguf: &qev-gguf
   command:
     - serve
     - --gguf
-    - ${QEV_GGUF:-mradermacher/OneJev-4B-GGUF:Q8_0}
+    - ${QEV_GGUF:-prithivMLmods/OneJev1.5-9B-GGUF:Q8_0}
     - --llama-server
     - /app/llama-server
     - --host
@@ -83,7 +83,7 @@ services:
     command:
       - serve
       - --model
-      - ${QEV_MODEL:-OmniJev/OneJev-4B}
+      - ${QEV_MODEL:-OmniJev/OneJev1.5-4B}
       - --multimodal
       - --host
       - 0.0.0.0
@@ -114,7 +114,7 @@ services:
     command:
       - serve
       - --model
-      - ${QEV_MODEL:-OmniJev/OneJev-4B}
+      - ${QEV_MODEL:-OmniJev/OneJev1.5-4B}
       - --multimodal
       - --no-cuda-graphs
       - --host

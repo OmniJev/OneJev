@@ -8,9 +8,10 @@ import os
 import sys
 from pathlib import Path
 
-DEFAULT_MODEL = "OmniJev/OneJev-4B"
+DEFAULT_MODEL = "OmniJev/OneJev1.5-4B"
 
 MODEL_ALIASES = {f"onejev-{s.lower()}": f"OmniJev/OneJev-{s}" for s in ("0.8B", "4B", "9B", "27B", "27B-FP8")}
+MODEL_ALIASES |= {f"onejev1.5-{s.lower()}": f"OmniJev/OneJev1.5-{s}" for s in ("0.8B", "4B", "9B", "27B")}
 
 
 def _resolve_model(name: str) -> str:
@@ -55,7 +56,7 @@ def _serve_gguf(args: argparse.Namespace) -> None:
     source = args.gguf or args.llama_url
     tok = args.tokenizer or tokenizer_repo(source)
     if tok is None:
-        raise SystemExit("cannot tell which OneJev size this GGUF is; pass --tokenizer OmniJev/OneJev-<size>")
+        raise SystemExit("cannot tell which OneJev size this GGUF is; pass --tokenizer OmniJev/OneJev1.5-<size>")
     tok_dir = _tokenizer_dir(tok)
     calib_path = args.calibration or _find_calibration(tok)
     calib = Calibration.load(calib_path) if calib_path else None
@@ -157,7 +158,7 @@ def main() -> None:
 
     s = sub.add_parser("serve", help="start the API server")
     s.add_argument("--model", default=DEFAULT_MODEL,
-                   help="release alias (onejev-4b), HF id (OmniJev/OneJev-4B), or local path")
+                   help="release alias (onejev1.5-4b), HF id (OmniJev/OneJev1.5-4B), or local path")
     s.add_argument("--name", default=None, help="model name reported by the API (default: last path component)")
     s.add_argument("--calibration", default=None,
                    help="calibration.json with temperatures (default: the one shipped next to the weights, if any)")
@@ -180,7 +181,7 @@ def main() -> None:
     s.add_argument("--max-request-tokens", type=int, default=65536, help="longest whole request the server accepts")
     s.add_argument("--gguf", default=None,
                    help="run a GGUF model on llama.cpp: a local .gguf file or a Hub repo:quant "
-                        "(mradermacher/OneJev-4B-GGUF:Q4_K_M); needs llama-server")
+                        "(prithivMLmods/OneJev1.5-9B-GGUF:Q4_K_M); needs llama-server")
     s.add_argument("--llama-url", default=None, help="use a running llama-server at this URL instead of starting one")
     s.add_argument("--llama-server", default="llama-server", help="llama-server binary for --gguf")
     s.add_argument("--mmproj", default=None, help="vision projector GGUF for --gguf (found next to a local file)")

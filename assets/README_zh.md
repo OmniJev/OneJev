@@ -8,7 +8,7 @@
 <p align="center"><a href="https://github.com/OmniJev/OneJev">English</a> · <b>简体中文</b> · <a href="README_ja.md">日本語</a></p>
 
 <p align="center">
-  <a href="https://huggingface.co/collections/OmniJev/onejev"><img alt="Hugging Face" src="https://img.shields.io/badge/Hugging_Face-OneJev-FFD21E?style=flat-square&logo=huggingface&logoColor=black"></a>
+  <a href="https://huggingface.co/collections/OmniJev/onejev15"><img alt="Hugging Face" src="https://img.shields.io/badge/Hugging_Face-OneJev1.5-FFD21E?style=flat-square&logo=huggingface&logoColor=black"></a>
   <a href="https://huggingface.co/spaces/BradNLP/OneJev"><img alt="Demo" src="https://img.shields.io/badge/Demo-Try_it-D45BB6?style=flat-square&logo=gradio&logoColor=white"></a>
   <a href="https://github.com/OmniJev/OneJev"><img alt="GitHub" src="https://img.shields.io/badge/GitHub-OmniJev%2FOneJev-181717?style=flat-square&logo=github&logoColor=white"></a>
   <a href="https://omnijev.github.io/OneJev/"><img alt="Website" src="https://img.shields.io/badge/Website-OneJev-0A84FF?style=flat-square&logo=googlechrome&logoColor=white"></a>
@@ -22,30 +22,47 @@
   <a href="https://github.com/huggingface/transformers"><img alt="Transformers" src="https://img.shields.io/badge/Transformers-5%2B-FFD21E?style=flat-square&logo=huggingface&logoColor=black"></a>
 </p>
 
-OneJev 是一个多模态 System One 决策模型，一次前向传播即可为截图、照片、视频和文本上的带类型问题返回校准后的概率，提供 0.8B、4B、9B 和 27B 四种尺寸。
+OneJev 是基于 [Qwen](https://huggingface.co/Qwen) 的多模态 System One 决策模型，一次前向传播即可为截图、照片、视频和文本上的带类型问题返回校准后的概率，提供 0.8B、4B、9B 和 27B 四种尺寸。
 
-## 结果
+## 🔥 新闻
+
+- 🔥 **2026-10-13** 我们发布了 [OneJev 1.5](https://huggingface.co/collections/OmniJev/onejev15)，欢迎试用。
+- **2026-09-28** 我们上线了在线 demo，👉 [点我试用](https://huggingface.co/spaces/BradNLP/OneJev)。
+- **2026-09-27** 我们发布了 [OneJev](https://huggingface.co/collections/OmniJev/onejev) 和 [OneJev 数据集](https://huggingface.co/datasets/OmniJev/OneJev-Data)。
+
+## Decision Index（公开部分）
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="zh/progress-dark.svg">
+    <img alt="像素柱状图，Decision Index 0.3 公开部分得分，OneJev 1.5 对比 OneJev 1.0：0.8B 42.71 对 22.23（+20.5），4B 54.89 对 40.84（+14.0），9B 59.03 对 45.71（+13.3），27B 63.64 对 55.56（+8.1）" src="zh/progress.svg" width="100%">
+  </picture>
+</p>
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="zh/leaderboard-dark.svg">
+    <img alt="按模型尺寸分的四张 Decision Index 0.3 公开部分排行榜，各列前十，OneJev1.5 高亮：OneJev1.5-0.8B 在 48 个 2.5B 参数以下的模型中排第 1，OneJev1.5-4B 在 34 个 3B 到 6B 的模型中排第 2，OneJev1.5-9B 在 24 个 6B 到 12B 的模型中排第 1，OneJev1.5-27B 在 44 个 25B 到 36B 的模型中排第 5" src="zh/leaderboard.svg" width="100%">
+  </picture>
+</p>
+
+## 其他评测
 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="zh/results-dark.svg">
-    <img alt="像素柱状图：四个尺寸的 OneJev 与 Jev 1.13、Jev-Omni 12B、Qwen3.8-27B 思考模式在 OneJev 测试集、DecisionBench 困难、TypeSafe 和 MMStar 上的对比" src="zh/results.svg" width="100%">
+    <img alt="像素柱状图：四个尺寸的 OneJev1.5 与 Jev 1.13、Jev-Omni 12B、Qwen3.8-27B 思考模式在 OneJev 测试集、DecisionBench 困难、TypeSafe 和 MMStar 上的对比" src="zh/results.svg" width="100%">
   </picture>
 </p>
 
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="zh/table-dark.svg">
-    <img alt="结果表，每行最高分为洋红色，第二名为浅粉色" src="zh/table.svg" width="100%">
-  </picture>
-</p>
+准确率（%）。OneJev 测试集是我们自己的留出集，其余为公开评测。
 
-准确率（%）。OneJev 测试集未参与 OneJev 训练。Jev 1.13 使用公开的纯文本评测分数；Jev-Omni 和 Qwen3.8-27B 思考模式由我们评测。
+## 速度
 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="zh/speed-dark.svg">
-    <img alt="一块 H200、一张 1280x720 截图的延迟：OneJev-0.8B 1 个问题 31 ms，10 个问题 51 ms，每个问题 5.1 ms；OneJev-4B 1 个问题 64 ms，10 个问题 104 ms，每个问题 10.4 ms；OneJev-9B 1 个问题 81 ms，10 个问题 131 ms，每个问题 13.1 ms；OneJev-27B 1 个问题 189 ms，10 个问题 324 ms，每个问题 32.4 ms" src="zh/speed.svg" width="100%">
+    <img alt="一块 H200、一张 1280x720 截图的延迟：0.8B 1 个问题 31 ms，10 个问题 51 ms，每个问题 5.1 ms；4B 1 个问题 64 ms，10 个问题 104 ms，每个问题 10.4 ms；9B 1 个问题 81 ms，10 个问题 131 ms，每个问题 13.1 ms；27B 1 个问题 189 ms，10 个问题 324 ms，每个问题 32.4 ms" src="zh/speed.svg" width="100%">
   </picture>
 </p>
 
@@ -59,7 +76,7 @@ OneJev 是一个多模态 System One 决策模型，一次前向传播即可为�
 
 ```bash
 pip install "qev[torch] @ git+https://github.com/OmniJev/OneJev.git"
-qev serve --model OmniJev/OneJev-4B --port 8000
+qev serve --model OmniJev/OneJev1.5-4B --port 8000
 ```
 
 ### 选项 B：llama.cpp
@@ -68,12 +85,12 @@ qev serve --model OmniJev/OneJev-4B --port 8000
 
 ```bash
 pip install git+https://github.com/OmniJev/OneJev.git
-qev serve --gguf mradermacher/OneJev-4B-GGUF:Q8_0 --port 8000
+qev serve --gguf prithivMLmods/OneJev1.5-9B-GGUF:Q8_0 --port 8000
 ```
 
 ### 选项 C：Docker
 
-仓库附带 Compose 栈，会自动检测硬件并启动一种后端。llama.cpp 配置首次启动时会下载 `mradermacher/OneJev-4B-GGUF:Q8_0`；换尺寸或量化请在 `docker/.env` 中设置 `QEV_GGUF`。
+仓库附带 Compose 栈，会自动检测硬件并启动一种后端。llama.cpp 配置首次启动时会下载 `prithivMLmods/OneJev1.5-9B-GGUF:Q8_0`；换尺寸或量化请在 `docker/.env` 中设置 `QEV_GGUF`。
 
 ```bash
 cp docker/.env.example docker/.env   # 受限/私有仓库请设置 HF_TOKEN
@@ -146,17 +163,6 @@ torchrun --nproc-per-node 4 -m train.sft --config train/configs/onejev_4b_full.y
 qev serve --model train/runs/onejev_4b/final --port 8000
 ```
 
-## 引用
-
-```bibtex
-@misc{onejev2026,
-  title        = {{OneJev}: A Multimodal System One Decision Model},
-  author       = {{OmniJev Team}},
-  year         = {2026},
-  howpublished = {\url{https://github.com/OmniJev/OneJev}}
-}
-```
-
 ## Friendly Links
 
 - [LINUX DO](https://linux.do)
@@ -175,3 +181,14 @@ qev serve --model train/runs/onejev_4b/final --port 8000
   <a href="https://star-history.com/#OmniJev/OneJev&Date"><img src="https://api.star-history.com/svg?repos=OmniJev/OneJev&type=Date" alt="OneJev 在 GitHub 上的星标" width="49%"></a>
   <a href="https://huggingface.co/OmniJev"><img src="downloads.svg" alt="OneJev 在 Hugging Face 上的下载量" width="49%"></a>
 </p>
+
+## 引用
+
+```bibtex
+@misc{onejev2026,
+  title        = {{OneJev}: A Multimodal System One Decision Model},
+  author       = {{OmniJev Team}},
+  year         = {2026},
+  howpublished = {\url{https://github.com/OmniJev/OneJev}}
+}
+```

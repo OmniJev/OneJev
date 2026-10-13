@@ -50,11 +50,11 @@ def smart_resize(height: int, width: int, factor: int, min_pixels: int, max_pixe
 
 def tokenizer_repo(gguf: str) -> str | None:
     """The OneJev repository a GGUF file or repository was made from, guessed from its name."""
-    m = re.search(r"OneJev-(0\.8B|4B|9B|27B)", gguf, re.IGNORECASE)
+    m = re.search(r"OneJev(1\.5)?-(0\.8B|4B|9B|27B)", gguf, re.IGNORECASE)
     if not m:
         return None
-    size = next(s for s in SIZES if s.lower() == m.group(1).lower())
-    return f"OmniJev/OneJev-{size}"
+    size = next(s for s in SIZES if s.lower() == m.group(2).lower())
+    return f"OmniJev/OneJev{m.group(1) or ''}-{size}"
 
 
 def resolve_gguf(spec: str, default_quant: str = "Q8_0") -> tuple[str, str | None]:
