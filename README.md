@@ -27,7 +27,8 @@ typed questions about screenshots, photos, videos and text in a single forward p
 
 ## 🔥 News
 
-- 🔥 **2026-10-13** We released [OneJev 1.5](https://huggingface.co/collections/OmniJev/onejev15). Welcome to have a try.
+- 🔥 **2026-10-17** We released [OneJev 1.6](https://huggingface.co/collections/OmniJev/onejev16). Welcome to have a try.
+- **2026-10-13** We released [OneJev 1.5](https://huggingface.co/collections/OmniJev/onejev15). Welcome to have a try.
 - **2026-09-28** We released the online demo, 👉 [Click me](https://huggingface.co/spaces/BradNLP/OneJev).
 - **2026-09-27** We released [OneJev](https://huggingface.co/collections/OmniJev/onejev) and the [OneJev dataset](https://huggingface.co/datasets/OmniJev/OneJev-Data).
 

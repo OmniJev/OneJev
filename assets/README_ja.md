@@ -26,7 +26,8 @@ OneJev は [Qwen](https://huggingface.co/Qwen) をベースにしたマルチモ
 
 ## 🔥 ニュース
 
-- 🔥 **2026-10-13** [OneJev 1.5](https://huggingface.co/collections/OmniJev/onejev15) を公開しました。ぜひお試しください。
+- 🔥 **2026-10-17** [OneJev 1.6](https://huggingface.co/collections/OmniJev/onejev16) を公開しました。ぜひお試しください。
+- **2026-10-13** [OneJev 1.5](https://huggingface.co/collections/OmniJev/onejev15) を公開しました。ぜひお試しください。
 - **2026-09-28** オンラインデモを公開しました。👉 [こちらから](https://huggingface.co/spaces/BradNLP/OneJev)
 - **2026-09-27** [OneJev](https://huggingface.co/collections/OmniJev/onejev) と [OneJev データセット](https://huggingface.co/datasets/OmniJev/OneJev-Data) を公開しました。
 

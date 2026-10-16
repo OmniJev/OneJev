@@ -26,7 +26,8 @@ OneJev 是基于 [Qwen](https://huggingface.co/Qwen) 的多模态 System One 决
 
 ## 🔥 新闻
 
-- 🔥 **2026-10-13** 我们发布了 [OneJev 1.5](https://huggingface.co/collections/OmniJev/onejev15)，欢迎试用。
+- 🔥 **2026-10-17** 我们发布了 [OneJev 1.6](https://huggingface.co/collections/OmniJev/onejev16)，欢迎试用。
+- **2026-10-13** 我们发布了 [OneJev 1.5](https://huggingface.co/collections/OmniJev/onejev15)，欢迎试用。
 - **2026-09-28** 我们上线了在线 demo，👉 [点我试用](https://huggingface.co/spaces/BradNLP/OneJev)。
 - **2026-09-27** 我们发布了 [OneJev](https://huggingface.co/collections/OmniJev/onejev) 和 [OneJev 数据集](https://huggingface.co/datasets/OmniJev/OneJev-Data)。
 
