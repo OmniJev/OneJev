@@ -1,4 +1,4 @@
 """Qev: open System One decision model and TypeSafe-compatible server."""
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 
 from .client import Choice, Client, Noul, Score

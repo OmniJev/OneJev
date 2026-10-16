@@ -1,5 +1,7 @@
 """DecisionEngine: load a causal LM, verify answer slots, and answer a System One request with
-one shared-prefix prefill and one batched suffix forward (no token is ever sampled).
+one shared-prefix prefill and one batched suffix forward (no token is ever sampled). A request with
+one question runs its whole prompt in one forward, from a CUDA graph when one fits. Only the output
+head rows of the answer slots are computed.
 
 Batched mode forks the prefix cache along the batch dimension, including the convolutional and
 recurrent states of linear-attention layers (Qwen3.5), which the generic cache API does not fork.
@@ -29,6 +31,8 @@ log = logging.getLogger("qev.engine")
 
 NONE_OPTION = "none of the options listed here"
 NONE_DESCRIPTION = "The correct option is not among the options listed in this question."
+GRAPH_SIZES = (64, 96, 128, 160, 192, 224, 256, 320, 384, 448, 512, 640, 768, 896, 1024, 1280, 1536, 1792, 2048,
+               2560, 3072, 3584, 4096)
 
 
 @dataclass
@@ -70,6 +74,7 @@ class DecisionEngine:
         fork_tolerance: float = 5e-2,
         style: PromptStyle = DEFAULT_STYLE,
         head_dtype: str = "float32",
+        cuda_graphs: bool = False,
     ) -> None:
         import torch
         import transformers
@@ -97,16 +102,27 @@ class DecisionEngine:
                                          device_map={"": str(self.device)}, low_cpu_mem_usage=True, **common)
         self.model.eval()
         self.head_dtype = head_dtype
-        if head_dtype != dtype:
-            self._upcast_head(getattr(torch, head_dtype))
+        self._want_mass = False
         self.model_type = config.model_type
         self.template_kwargs = {"enable_thinking": False} if "qwen" in self.model_type else {}
         self.slot_ids = self._verify_slots()
+        self._init_slot_head()
         self.pad_id = self.tokenizer.pad_token_id if self.tokenizer.pad_token_id is not None else self.tokenizer.eos_token_id
+        self._graphs = None
+        if cuda_graphs and self.device.type == "cuda" and self.model_type in {"qwen3_5", "qwen3_5_text"}:
+            from .mm_engine import DecoderGraphs
+
+            self._graphs = DecoderGraphs(self.model.model, sizes=GRAPH_SIZES)
+            try:
+                self._graphs.capture_all(self.model.config.hidden_size, self.torch_dtype, self.device)
+            except (RuntimeError, torch.OutOfMemoryError) as exc:
+                log.warning("CUDA graphs off after %s: %s", type(exc).__name__, exc)
+                self._graphs = None
+                torch.cuda.empty_cache()
         self.info = EngineInfo(model_path=model_path, model_type=self.model_type, dtype=dtype, device=str(self.device),
                                fork_mode="sequential", fork_max_abs_diff=None,
                                transformers_version=transformers.__version__, torch_version=torch.__version__,
-                               extra={"head_dtype": head_dtype})
+                               extra={"head_dtype": head_dtype, "cuda_graphs": self._graphs is not None})
         if fork_mode == "auto":
             self._select_fork_mode()
         else:
@@ -128,6 +144,29 @@ class DecisionEngine:
         if getattr(head, "bias", None) is not None:
             head.bias = torch.nn.Parameter(head.bias.detach().clone().to(head_dtype), requires_grad=False)
         head.register_forward_pre_hook(lambda module, args: (args[0].to(head_dtype),) + tuple(args[1:]))
+
+    def _init_slot_head(self) -> None:
+        """The output-head rows of the option-letter slots, in the head dtype. An answer needs only these logits; the
+        full vocabulary is computed only for the debug diagnostics (allowed-token mass)."""
+        import torch
+
+        head = self.model.get_output_embeddings()
+        ids = torch.tensor(self.slot_ids, device=head.weight.device)
+        dt = getattr(torch, self.head_dtype)
+        self._slot_w = head.weight.detach().index_select(0, ids).to(dt)
+        bias = getattr(head, "bias", None)
+        self._slot_b = None if bias is None else bias.detach().index_select(0, ids).to(dt)
+
+    def _readout_rows(self, hidden, n_slots: list[int]) -> list[tuple[list[float], float]]:
+        """Slot logits for each row of `hidden` (rows x hidden size, final-norm output), with one host sync."""
+        if self._want_mass:
+            head = self.model.get_output_embeddings()
+            vocab = head(hidden.to(head.weight.dtype))
+            return [self._readout(vocab[i], n) for i, n in enumerate(n_slots)]
+        sel = hidden.to(self._slot_w.dtype) @ self._slot_w.T
+        if self._slot_b is not None:
+            sel = sel + self._slot_b
+        return [(row[:n], float("nan")) for row, n in zip(sel.tolist(), n_slots)]
 
     def _verify_slots(self) -> list[int]:
         """Slot token ids for every label the tokenizer holds as one round-trip token. A..Z are required. The
@@ -215,24 +254,55 @@ class DecisionEngine:
         mass = float((torch.logsumexp(sel, -1) - torch.logsumexp(v, -1)).exp())
         return sel.tolist(), mass
 
+    def _run_one(self, prefix_ids: list[int], suffix: list[int], r: RenderedQuestion) -> list[BranchResult]:
+        """One branch: the whole prompt in one forward without a cache. The decoder runs from a CUDA graph when the
+        prompt fits one; the graph pads on the right, which leaves every real position as it was."""
+        import torch
+
+        ids = torch.tensor([prefix_ids + suffix], device=self.device)
+        with torch.inference_mode():
+            last = None
+            if self._graphs is not None:
+                n = ids.shape[1]
+                pos = torch.arange(n, device=self.device).view(1, 1, n).expand(3, 1, n)
+                try:
+                    last = self._graphs(self.model.model.embed_tokens(ids), pos)
+                except (RuntimeError, torch.OutOfMemoryError) as exc:
+                    log.warning("CUDA graphs off after %s: %s", type(exc).__name__, exc)
+                    self._graphs = None
+                    torch.cuda.empty_cache()
+            if last is None:
+                last = self.model.model(input_ids=ids, use_cache=False, return_dict=True).last_hidden_state[:, -1]
+            (logits, mass), = self._readout_rows(last, [r.n_slots])
+        return [BranchResult(r.qid, r.kind, r.labels, r.descriptions, logits, mass, len(suffix))]
+
+    def _graph_branches(self, prefix_ids: list[int], suffixes: list[list[int]]) -> bool:
+        """Small requests with several branches run each branch as its own whole prompt from the graphs: repeating a
+        short prefix costs less than a prefill, a cache fork and a branch forward launched eagerly."""
+        if len(suffixes) == 1:
+            return True
+        return self._graphs is not None and len(suffixes) * (len(prefix_ids) + max(map(len, suffixes))) <= GRAPH_SIZES[-1]
+
     def _run_sequential(self, state: Any, rendered: list[RenderedQuestion]) -> list[BranchResult]:
         import torch
 
         prefix_ids, suffixes = self._prefix_and_suffix_ids(state, rendered)
+        if self._graph_branches(prefix_ids, suffixes):
+            return [b for r, s in zip(rendered, suffixes) for b in self._run_one(prefix_ids, s, r)]
         dev = self.device
         with torch.inference_mode():
-            out = self.model(input_ids=torch.tensor([prefix_ids], device=dev),
-                             attention_mask=torch.ones((1, len(prefix_ids)), dtype=torch.long, device=dev),
-                             use_cache=True, return_dict=True, logits_to_keep=1)
+            out = self.model.model(input_ids=torch.tensor([prefix_ids], device=dev),
+                                   attention_mask=torch.ones((1, len(prefix_ids)), dtype=torch.long, device=dev),
+                                   use_cache=True, return_dict=True)
             base = out.past_key_values
             del out
             results = []
             for r, suf in zip(rendered, suffixes):
                 cache = copy.deepcopy(base)
-                o = self.model(input_ids=torch.tensor([suf], device=dev),
-                               attention_mask=torch.ones((1, len(prefix_ids) + len(suf)), dtype=torch.long, device=dev),
-                               past_key_values=cache, use_cache=True, return_dict=True, logits_to_keep=1)
-                logits, mass = self._readout(o.logits[0, -1], r.n_slots)
+                o = self.model.model(input_ids=torch.tensor([suf], device=dev),
+                                     attention_mask=torch.ones((1, len(prefix_ids) + len(suf)), dtype=torch.long, device=dev),
+                                     past_key_values=cache, use_cache=True, return_dict=True)
+                (logits, mass), = self._readout_rows(o.last_hidden_state[:, -1], [r.n_slots])
                 results.append(BranchResult(r.qid, r.kind, r.labels, r.descriptions, logits, mass, len(suf)))
                 del o, cache
             del base
@@ -267,14 +337,17 @@ class DecisionEngine:
         import torch
 
         prefix_ids, suffixes = self._prefix_and_suffix_ids(state, rendered)
+        if self._graph_branches(prefix_ids, suffixes):
+            return [b for r, s in zip(rendered, suffixes) for b in self._run_one(prefix_ids, s, r)]
         dev = self.device
         P = len(prefix_ids)
-        chunk = max(1, min(len(rendered), self.fork_token_budget // max(P, 1)))
+        width = max(len(s) for s in suffixes)
+        chunk = max(1, min(len(rendered), self.fork_token_budget // max(P + width, 1)))
         results: list[BranchResult | None] = [None] * len(rendered)
         with torch.inference_mode():
-            out = self.model(input_ids=torch.tensor([prefix_ids], device=dev),
-                             attention_mask=torch.ones((1, P), dtype=torch.long, device=dev),
-                             use_cache=True, return_dict=True, logits_to_keep=1)
+            out = self.model.model(input_ids=torch.tensor([prefix_ids], device=dev),
+                                   attention_mask=torch.ones((1, P), dtype=torch.long, device=dev),
+                                   use_cache=True, return_dict=True)
             base = out.past_key_values
             del out
             start = 0
@@ -300,25 +373,25 @@ class DecisionEngine:
         dev = self.device
         sufs = [suffixes[i] for i in idx]
         width = max(len(s) for s in sufs)
-        ids = torch.full((len(idx), width), self.pad_id, dtype=torch.long, device=dev)
-        mask = torch.zeros((len(idx), P + width), dtype=torch.long, device=dev)
-        pos = torch.zeros((len(idx), width), dtype=torch.long, device=dev)
+        ids = torch.full((len(idx), width), self.pad_id, dtype=torch.long)
+        mask = torch.zeros((len(idx), P + width), dtype=torch.long)
+        pos = torch.zeros((len(idx), width), dtype=torch.long)
         ends = []
         for row, s in enumerate(sufs):
-            ids[row, : len(s)] = torch.tensor(s, device=dev)
+            ids[row, : len(s)] = torch.tensor(s)
             mask[row, : P + len(s)] = 1
-            pos[row, : len(s)] = torch.arange(P, P + len(s), device=dev)
+            pos[row, : len(s)] = torch.arange(P, P + len(s))
             ends.append(len(s) - 1)
-        keep = sorted(set(ends))
         cache = self._fork(base, len(idx))
         try:
-            o = self.model(input_ids=ids, attention_mask=mask, position_ids=pos, past_key_values=cache,
-                           use_cache=True, return_dict=True,
-                           logits_to_keep=torch.tensor(keep, dtype=torch.long, device=dev))
+            o = self.model.model(input_ids=ids.to(dev), attention_mask=mask.to(dev), position_ids=pos.to(dev),
+                                 past_key_values=cache, use_cache=True, return_dict=True)
+            last = o.last_hidden_state[torch.arange(len(idx), device=dev), torch.tensor(ends, device=dev)]
+            outs = self._readout_rows(last, [rendered[i].n_slots for i in idx])
             for row, i in enumerate(idx):
                 r = rendered[i]
-                logits, mass = self._readout(o.logits[row, keep.index(ends[row])], r.n_slots)
-                results[i] = BranchResult(r.qid, r.kind, r.labels, r.descriptions, logits, mass, len(sufs[row]))
+                results[i] = BranchResult(r.qid, r.kind, r.labels, r.descriptions, outs[row][0], outs[row][1],
+                                          len(sufs[row]))
             del o
         finally:
             del cache
@@ -335,6 +408,7 @@ class DecisionEngine:
         """Answer a request. `debias > 1` averages probabilities over that many cyclic shifts of
         the option order (all sharing the same prefix)."""
         t0 = time.perf_counter()
+        self._want_mass = debug
         rendered: list[RenderedQuestion] = []
         owners: list[tuple[str, list[int], int | None]] = []
         chunk_plans: dict[str, list[list[str]]] = {}

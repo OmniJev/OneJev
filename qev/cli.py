@@ -127,7 +127,7 @@ def cmd_serve(args: argparse.Namespace) -> None:
                                   max_request_tokens=args.max_request_tokens)
     else:
         engine = DecisionEngine(model_path, device=args.device, dtype=args.dtype, calibration=calib,
-                                fork_mode=args.fork_mode, head_dtype=args.head_dtype,
+                                fork_mode=args.fork_mode, head_dtype=args.head_dtype, cuda_graphs=not args.no_cuda_graphs,
                                 max_branch_tokens=args.max_branch_tokens, max_request_tokens=args.max_request_tokens)
     parts = args.model.split("/")
     default_name = "-".join(parts[1:]) if len(parts) > 2 else Path(args.model).name
@@ -171,7 +171,7 @@ def main() -> None:
     s.add_argument("--media-root", default=None,
                    help="with --multimodal, also accept media paths inside this directory (URLs and base64 always work)")
     s.add_argument("--no-cuda-graphs", action="store_true",
-                   help="with --multimodal, run the decoder eagerly (CUDA graphs are captured per padded length on first use)")
+                   help="run the decoder eagerly (CUDA graphs are captured per padded length)")
     s.add_argument("--quantize", default=None, choices=["fp8"],
                    help="with --multimodal, run the decoder's linear layers in FP8 (an -FP8 checkpoint does this by itself)")
     s.add_argument("--no-gpu-preprocess", action="store_true",

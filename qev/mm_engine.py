@@ -92,9 +92,30 @@ class DecoderGraphs:
     one graph's capture can take memory another graph still reads on replay, which silently corrupts it. The least
     recently used graphs are dropped beyond `max_graphs`."""
 
-    def __init__(self, decoder, step: int = 128, max_len: int = 16384, max_graphs: int = 8) -> None:
+    def __init__(self, decoder, step: int = 128, max_len: int = 16384, max_graphs: int = 8,
+                 sizes: tuple[int, ...] | None = None) -> None:
         self.decoder, self.step, self.max_len, self.max_graphs = decoder, step, max_len, max_graphs
+        self.sizes = tuple(sorted(sizes)) if sizes else None
+        if self.sizes:
+            self.max_len, self.max_graphs = self.sizes[-1], max(max_graphs, len(self.sizes))
         self.graphs: collections.OrderedDict[int, tuple] = collections.OrderedDict()
+
+    def _size(self, n: int) -> int | None:
+        if self.sizes:
+            return next((s for s in self.sizes if s >= n), None)
+        size = -(-n // self.step) * self.step
+        return size if size <= self.max_len else None
+
+    def capture_all(self, hidden: int, dtype, device) -> None:
+        """Capture every size of `sizes` now, largest first, so no request pays for a capture."""
+        import torch
+
+        emb = torch.zeros((1, 1, hidden), dtype=dtype, device=device)
+        pos = torch.zeros((3, 1, 1), dtype=torch.long, device=device)
+        with torch.inference_mode():
+            for size in reversed(self.sizes or ()):
+                if size not in self.graphs:
+                    self._capture(size, emb, pos)
 
     def __call__(self, embeds, positions):
         """embeds (1, L, hidden), positions (3, 1, L) -> final-norm hidden state at position L - 1, or None when L is
@@ -102,8 +123,8 @@ class DecoderGraphs:
         import torch
 
         n = embeds.shape[1]
-        size = -(-n // self.step) * self.step
-        if size > self.max_len:
+        size = self._size(n)
+        if size is None:
             return None
         if size in self.graphs:
             self.graphs.move_to_end(size)
