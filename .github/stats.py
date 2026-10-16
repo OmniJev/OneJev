@@ -28,7 +28,7 @@ LEGEND = "omnijev/onejev"
 Y_LABEL = "Hugging Face Downloads"
 W, H = 800, 533.333
 LEFT, TOP, RIGHT, BOTTOM = 70, 60, 30, 50
-COLOURS = {"bg": "#fff", "ink": "#000", "line": "#d45bb6"}
+COLOURS = {"bg": "#fff", "ink": "#000", "line": "#f83800"}
 STEPS = (1, 2, 7, 30, 91, 365)
 
 
