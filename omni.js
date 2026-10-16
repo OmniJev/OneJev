@@ -88,9 +88,9 @@
       dens = Math.min(1, dens) * 0.9 + (rnd() - 0.5) * 0.04;
       if (dens > BAYER[y & 7][x & 7]) {
         const i = (y * W + x) * 4, deep = v > top2 + 0.06;
-        d[i] = deep ? 212 : 243;
-        d[i + 1] = deep ? 91 : 134;
-        d[i + 2] = deep ? 182 : 161;
+        d[i] = deep ? 248 : 248;
+        d[i + 1] = deep ? 56 : 120;
+        d[i + 2] = deep ? 0 : 88;
         d[i + 3] = 255;
       }
     }
@@ -121,7 +121,7 @@
   }
   function eyeSVG(host) {
     const svg2 = sv("svg", { viewBox: "0 0 16 12", class: "eye-svg", "shape-rendering": "crispEdges", role: "img", "aria-label": "OneJev eye" });
-    const frame = sv("g", { fill: "#1e1e1e" }), ring = sv("g", { fill: "#d45bb6" }), pupil = sv("g", { fill: "#f386a1" }), lid = sv("g", { fill: "#d45bb6" });
+    const frame = sv("g", { fill: "#1e1e1e" }), ring = sv("g", { fill: "#f83800" }), pupil = sv("g", { fill: "#f87858" }), lid = sv("g", { fill: "#f83800" });
     EYE.forEach((row, y) => [...row].forEach((ch, x) => {
       if (ch === "#") frame.append(sv("rect", { x, y, width: 1, height: 1 }));
       if (ch === "m") ring.append(sv("rect", { x, y, width: 1, height: 1 }));
@@ -234,7 +234,7 @@
       i.src = src;
     });
   }
-  function atkinson(img, W, light = [249, 202, 221], noise = 0) {
+  function atkinson(img, W, light = [240, 208, 176], noise = 0) {
     const H = Math.max(1, Math.round(img.naturalHeight * W / img.naturalWidth));
     const c = document.createElement("canvas");
     c.width = W;
@@ -727,7 +727,7 @@ ${qs.join(",\n")}
     rows.push(h("div", { class: "board-row head" }, h("span", {}, say("one forward pass", "一次前向")), heads));
     const cells = [], marks = [];
     for (const [m, name, ours] of cand) {
-      const cs = cols.map(([k, , f]) => h("span", { class: "n", style: m[k] === best[k] ? "color:#d45bb6" : "" }, m[k] == null ? "·" : f(m[k])));
+      const cs = cols.map(([k, , f]) => h("span", { class: "n", style: m[k] === best[k] ? "color:#f83800" : "" }, m[k] == null ? "·" : f(m[k])));
       const mk = h("i");
       cells.push(cs);
       marks.push(mk);
@@ -761,7 +761,7 @@ ${qs.join(",\n")}
     }, 1300);
     const mon = S.demos.monitor.find((e) => /phone/i.test(e.state.platform) && e.questions[0].gold === "no") || S.demos.monitor[0];
     const q0 = mon.questions[0];
-    const shotBox = h("div", { style: "background:#f9cadd" }, h("p", { class: "px", style: "padding:40px 8px;font-size:15px" }, say("dithering…", "像素化中…")));
+    const shotBox = h("div", { style: "background:#f0d0b0" }, h("p", { class: "px", style: "padding:40px 8px;font-size:15px" }, say("dithering…", "像素化中…")));
     const [yk, yp] = top(q0.probs[MAIN]);
     put(win("screen.pict", [shotBox, h("p", { class: "px", style: "font-size:14px;line-height:1.3;margin-top:6px" }, say(`phone run at step ${mon.state.steps_so_far ?? mon.meta.cut_step}. will it finish? ${yk} ${p2(yp)}`, `手机运行到第 ${mon.state.steps_so_far ?? mon.meta.cut_step} 步。能完成吗？${yk} ${p2(yp)}`))], { cls: "pict" }), "1.5%", 60, 230).querySelector(".win-b").style.padding = "6px";
     Promise.all(mon.media.filter((m) => m.type === "image").map((m) => loadImg(m.src))).then((ims) => {
@@ -792,7 +792,7 @@ ${qs.join(",\n")}
     put(win("sizes", sizeBox), "71%", 60, 300);
     buildOnView(sizeBox);
     const rec = S.demos.recipe[0], rq = rec.questions[0];
-    const mov = h("div", { style: "aspect-ratio:16/9;background:#f9cadd" });
+    const mov = h("div", { style: "aspect-ratio:16/9;background:#f0d0b0" });
     const [rk, rp] = top(rq.probs[MAIN]);
     put(win("egg.mov", [mov, h("p", { class: "px", style: "font-size:14px;line-height:1.3;margin-top:6px" }, say("now: ", "现在：") + `${short(optText(rq, rk), 40)} ${p2(rp)}`)]), "48.5%", 420, 330).querySelector(".win-b").style.padding = "6px";
     Promise.all(rec.media[0].frames.map(loadImg)).then((ims) => {
@@ -807,7 +807,7 @@ ${qs.join(",\n")}
     });
     const bigEye = h("div", { class: "big-eye", style: "left:77%;top:548px;width:230px" });
     os.append(bigEye);
-    eyeSVG(bigEye);
+    eyeSVG(bigEye).svg.prepend(sv("rect", { x: 1, y: 1, width: 14, height: 9, fill: "#fefefe" }));
     put(win("onejev.txt", h("p", { class: "px", style: "font-size:15px;line-height:1.45" }, say("OneJev, version 1.0", "OneJev 1.0 版"), h("br"), "Apache-2.0", h("br"), say(`${sizes.length} sizes, one API`, `${sizes.length} 个尺寸，一套 API`))), "1.5%", 692, 230);
     const ICONS = {
       demos: ["############", "#..........#", "#...m......#", "#...mmm....#", "#...mmmmm..#", "#...mmm....#", "#...m......#", "#..........#", "############", "....####...."],
@@ -817,7 +817,7 @@ ${qs.join(",\n")}
     const icon = (key, label, href, left, y) => {
       const g = ICONS[key], svg2 = sv("svg", { viewBox: `0 0 ${g[0].length} ${g.length}`, "shape-rendering": "crispEdges" });
       g.forEach((row, yy) => [...row].forEach((ch, xx) => {
-        if (ch !== ".") svg2.append(sv("rect", { x: xx, y: yy, width: 1, height: 1, fill: ch === "m" ? "#d45bb6" : "#1e1e1e" }));
+        if (ch !== ".") svg2.append(sv("rect", { x: xx, y: yy, width: 1, height: 1, fill: ch === "m" ? "#f83800" : "#1e1e1e" }));
       }));
       const a = h("a", { class: "ico", href, style: `left:${left};top:${y}px;text-decoration:none` }, svg2, h("span", {}, label));
       os.append(a);
@@ -834,7 +834,7 @@ ${qs.join(",\n")}
     tickClock();
     setInterval(tickClock, 1e3);
     put(win("clock 1.0", h("p", { class: "px", style: "font-size:16px;line-height:1.3;display:grid" }, dateEl, timeEl)), "71%", 300, 300);
-    const nEl = h("span", { style: 'font-size:30px;line-height:1.2;font-family:"Press Start 2P",monospace;color:#d45bb6' }, "0"), lastEl = h("span", {}, say("waiting for the streams", "等待实时流"));
+    const nEl = h("span", { style: 'font-size:30px;line-height:1.2;font-family:"Press Start 2P",monospace;color:#f83800' }, "0"), lastEl = h("span", {}, say("waiting for the streams", "等待实时流"));
     put(win("decisions 1.0", h("p", { class: "px", style: "font-size:15px;line-height:1.4;display:grid;gap:6px" }, nEl, lastEl)), "23%", 420, 270);
     document.addEventListener("omni-decision", (e) => {
       nEl.textContent = int(decisions);
@@ -1213,12 +1213,12 @@ ${qs.join(",\n")}
       }
       for (const [n, ours] of [[b, false], [a, true]]) {
         const pts = S.calibration[n].bins.filter((x) => x.n >= 20);
-        s += `<polyline fill="none" stroke="${ours ? "#d45bb6" : "#6b6b6b"}" stroke-width="${ours ? 3 : 2}" ${ours ? "" : 'stroke-dasharray="6 4"'} points="${pts.map((p) => `${X(p.conf)},${Y(p.acc)}`).join(" ")}"/>`;
-        for (const p of pts) s += ours ? `<rect x="${X(p.conf) - 7}" y="${Y(p.acc) - 7}" width="14" height="14" fill="#d45bb6" stroke="#1e1e1e" stroke-width="2"/>` : `<rect x="${X(p.conf) - 5}" y="${Y(p.acc) - 5}" width="10" height="10" fill="#fefefe" stroke="#6b6b6b" stroke-width="2"/>`;
+        s += `<polyline fill="none" stroke="${ours ? "#f83800" : "#6b6b6b"}" stroke-width="${ours ? 3 : 2}" ${ours ? "" : 'stroke-dasharray="6 4"'} points="${pts.map((p) => `${X(p.conf)},${Y(p.acc)}`).join(" ")}"/>`;
+        for (const p of pts) s += ours ? `<rect x="${X(p.conf) - 7}" y="${Y(p.acc) - 7}" width="14" height="14" fill="#f83800" stroke="#1e1e1e" stroke-width="2"/>` : `<rect x="${X(p.conf) - 5}" y="${Y(p.acc) - 5}" width="10" height="10" fill="#fefefe" stroke="#6b6b6b" stroke-width="2"/>`;
       }
       for (let k = 0; k <= 10; k += 2) s += `<text x="${X(k / 10)}" y="${T + PH + 22}" text-anchor="middle">${(k / 10).toFixed(1)}</text><text x="${L - 8}" y="${Y(k / 10) + 6}" text-anchor="end">${(k / 10).toFixed(1)}</text>`;
       s += `<text x="${L + PW / 2}" y="${H - 8}" text-anchor="middle">${say("confidence of the top option", "最高选项的置信度")}</text><text transform="translate(16 ${T + PH / 2}) rotate(-90)" text-anchor="middle">${say("share right", "答对比例")}</text>`;
-      s += `<rect x="${L + 14}" y="${T + 14}" width="12" height="12" fill="#d45bb6" stroke="#1e1e1e" stroke-width="2"/><text x="${L + 34}" y="${T + 25}">${disp(a)}</text><rect x="${L + 14}" y="${T + 36}" width="10" height="10" fill="#fefefe" stroke="#6b6b6b" stroke-width="2"/><text x="${L + 34}" y="${T + 47}">${b}${say(", before training", "，训练前")}</text>`;
+      s += `<rect x="${L + 14}" y="${T + 14}" width="12" height="12" fill="#f83800" stroke="#1e1e1e" stroke-width="2"/><text x="${L + 34}" y="${T + 25}">${disp(a)}</text><rect x="${L + 14}" y="${T + 36}" width="10" height="10" fill="#fefefe" stroke="#6b6b6b" stroke-width="2"/><text x="${L + 34}" y="${T + 47}">${b}${say(", before training", "，训练前")}</text>`;
       $("#cal-chart").replaceChildren(svg(W, H, s));
       const hi = (n) => {
         const bs2 = S.calibration[n].bins.slice(9);
