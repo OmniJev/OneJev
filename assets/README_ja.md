@@ -8,7 +8,7 @@
 <p align="center"><a href="https://github.com/OmniJev/OneJev">English</a> · <a href="README_zh.md">简体中文</a> · <b>日本語</b></p>
 
 <p align="center">
-  <a href="https://huggingface.co/collections/OmniJev/onejev15"><img alt="Hugging Face" src="https://img.shields.io/badge/Hugging_Face-OneJev1.5-FFD21E?style=flat-square&logo=huggingface&logoColor=black"></a>
+  <a href="https://huggingface.co/collections/OmniJev/onejev16"><img alt="Hugging Face" src="https://img.shields.io/badge/Hugging_Face-OneJev1.6-FFD21E?style=flat-square&logo=huggingface&logoColor=black"></a>
   <a href="https://huggingface.co/spaces/BradNLP/OneJev"><img alt="Demo" src="https://img.shields.io/badge/Demo-Try_it-F83800?style=flat-square&logo=gradio&logoColor=white"></a>
   <a href="https://github.com/OmniJev/OneJev"><img alt="GitHub" src="https://img.shields.io/badge/GitHub-OmniJev%2FOneJev-181717?style=flat-square&logo=github&logoColor=white"></a>
   <a href="https://omnijev.github.io/OneJev/"><img alt="Website" src="https://img.shields.io/badge/Website-OneJev-0A84FF?style=flat-square&logo=googlechrome&logoColor=white"></a>
@@ -36,14 +36,14 @@ OneJev は [Qwen](https://huggingface.co/Qwen) をベースにしたマルチモ
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="ja/progress-dark.svg">
-    <img alt="ブロック縦棒グラフ：Decision Index 0.3 公開部分のスコア、OneJev 1.5 と OneJev 1.0 の比較。0.8B 42.71 対 22.23（+20.5）、4B 54.89 対 40.84（+14.0）、9B 59.03 対 45.71（+13.3）、27B 63.64 対 55.56（+8.1）" src="ja/progress.svg" width="100%">
+    <img alt="ブロック縦棒グラフ：Decision Index 0.3 公開部分のスコア、OneJev 1.6 と OneJev 1.5 の比較。0.8B 48.82 対 42.71（+6.1）、4B 62.01 対 54.89（+7.1）、9B 65.31 対 59.03（+6.3）、27B 69.49 対 63.64（+5.8）" src="ja/progress.svg" width="100%">
   </picture>
 </p>
 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="ja/leaderboard-dark.svg">
-    <img alt="モデルサイズ別の Decision Index 0.3 公開部分ランキング 4 つ、各上位 10 件、OneJev1.5 を強調：OneJev1.5-0.8B はパラメータ 2.5B 以下の 48 モデル中 1 位、OneJev1.5-4B は 3B〜6B の 34 モデル中 2 位、OneJev1.5-9B は 6B〜12B の 24 モデル中 1 位、OneJev1.5-27B は 25B〜36B の 44 モデル中 5 位" src="ja/leaderboard.svg" width="100%">
+    <img alt="モデルサイズ別の Decision Index 0.3 公開部分ランキング 4 つ、各上位 10 件、OneJev1.6 を強調：OneJev1.6-0.8B はパラメータ 2.5B 以下の 51 モデル中 1 位、OneJev1.6-4B は 3B〜6B の 38 モデル中 1 位、OneJev1.6-9B は 6B〜12B の 26 モデル中 1 位、OneJev1.6-27B は 25B〜36B の 59 モデル中 2 位" src="ja/leaderboard.svg" width="100%">
   </picture>
 </p>
 
@@ -52,7 +52,7 @@ OneJev は [Qwen](https://huggingface.co/Qwen) をベースにしたマルチモ
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="ja/results-dark.svg">
-    <img alt="ブロック棒グラフ：4 サイズの OneJev1.5 と Jev 1.13、Jev-Omni 12B、Qwen3.8-27B 思考モードを OneJev テストセット、DecisionBench 難、TypeSafe、MMStar で比較" src="ja/results.svg" width="100%">
+    <img alt="ブロック棒グラフ：4 サイズの OneJev1.6 と Jev 1.13、Jev-Omni 12B、Qwen3.8-27B 思考モードを OneJev テストセット、DecisionBench 難、TypeSafe、MMStar で比較" src="ja/results.svg" width="100%">
   </picture>
 </p>
 
@@ -77,7 +77,7 @@ NVIDIA GPU 向け。テキスト、画像、動画に対応しています。
 
 ```bash
 pip install "qev[torch] @ git+https://github.com/OmniJev/OneJev.git"
-qev serve --model OmniJev/OneJev1.5-4B --port 8000
+qev serve --model OmniJev/OneJev1.6-4B --port 8000
 ```
 
 ### 選択肢 B：llama.cpp

@@ -8,7 +8,7 @@
 <p align="center"><b>English</b> · <a href="assets/README_zh.md">简体中文</a> · <a href="assets/README_ja.md">日本語</a></p>
 
 <p align="center">
-  <a href="https://huggingface.co/collections/OmniJev/onejev15"><img alt="Hugging Face" src="https://img.shields.io/badge/Hugging_Face-OneJev1.5-FFD21E?style=flat-square&logo=huggingface&logoColor=black"></a>
+  <a href="https://huggingface.co/collections/OmniJev/onejev16"><img alt="Hugging Face" src="https://img.shields.io/badge/Hugging_Face-OneJev1.6-FFD21E?style=flat-square&logo=huggingface&logoColor=black"></a>
   <a href="https://huggingface.co/spaces/BradNLP/OneJev"><img alt="Demo" src="https://img.shields.io/badge/Demo-Try_it-F83800?style=flat-square&logo=gradio&logoColor=white"></a>
   <a href="https://github.com/OmniJev/OneJev"><img alt="GitHub" src="https://img.shields.io/badge/GitHub-OmniJev%2FOneJev-181717?style=flat-square&logo=github&logoColor=white"></a>
   <a href="https://omnijev.github.io/OneJev/"><img alt="Website" src="https://img.shields.io/badge/Website-OneJev-0A84FF?style=flat-square&logo=googlechrome&logoColor=white"></a>
@@ -37,14 +37,14 @@ typed questions about screenshots, photos, videos and text in a single forward p
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/progress-dark.svg">
-    <img alt="Block column chart of public Decision Index 0.3 scores, OneJev 1.5 against OneJev 1.0: 0.8B 42.71 vs 22.23 (+20.5), 4B 54.89 vs 40.84 (+14.0), 9B 59.03 vs 45.71 (+13.3), 27B 63.64 vs 55.56 (+8.1)" src="assets/progress.svg" width="100%">
+    <img alt="Block column chart of public Decision Index 0.3 scores, OneJev 1.6 against OneJev 1.5: 0.8B 48.82 vs 42.71 (+6.1), 4B 62.01 vs 54.89 (+7.1), 9B 65.31 vs 59.03 (+6.3), 27B 69.49 vs 63.64 (+5.8)" src="assets/progress.svg" width="100%">
   </picture>
 </p>
 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/leaderboard-dark.svg">
-    <img alt="Four leaderboards of the public Decision Index 0.3 by model size, top ten each, OneJev1.5 highlighted: OneJev1.5-0.8B first of 48 models up to 2.5B parameters, OneJev1.5-4B second of 34 models of 3B to 6B, OneJev1.5-9B first of 24 models of 6B to 12B, OneJev1.5-27B fifth of 44 models of 25B to 36B" src="assets/leaderboard.svg" width="100%">
+    <img alt="Four leaderboards of the public Decision Index 0.3 by model size, top ten each, OneJev1.6 highlighted: OneJev1.6-0.8B first of 51 models up to 2.5B parameters, OneJev1.6-4B first of 38 models of 3B to 6B, OneJev1.6-9B first of 26 models of 6B to 12B, OneJev1.6-27B second of 59 models of 25B to 36B" src="assets/leaderboard.svg" width="100%">
   </picture>
 </p>
 
@@ -53,7 +53,7 @@ typed questions about screenshots, photos, videos and text in a single forward p
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/results-dark.svg">
-    <img alt="Block bar charts: the four OneJev1.5 sizes against Jev 1.13, Jev-Omni 12B and Qwen3.8-27B thinking on the OneJev test set, DecisionBench hard, TypeSafe and MMStar" src="assets/results.svg" width="100%">
+    <img alt="Block bar charts: the four OneJev1.6 sizes against Jev 1.13, Jev-Omni 12B and Qwen3.8-27B thinking on the OneJev test set, DecisionBench hard, TypeSafe and MMStar" src="assets/results.svg" width="100%">
   </picture>
 </p>
 
@@ -78,7 +78,7 @@ For NVIDIA GPUs. Supports text, images and video.
 
 ```bash
 pip install "qev[torch] @ git+https://github.com/OmniJev/OneJev.git"
-qev serve --model OmniJev/OneJev1.5-4B --port 8000
+qev serve --model OmniJev/OneJev1.6-4B --port 8000
 ```
 
 ### Option B: llama.cpp

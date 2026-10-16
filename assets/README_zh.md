@@ -8,7 +8,7 @@
 <p align="center"><a href="https://github.com/OmniJev/OneJev">English</a> · <b>简体中文</b> · <a href="README_ja.md">日本語</a></p>
 
 <p align="center">
-  <a href="https://huggingface.co/collections/OmniJev/onejev15"><img alt="Hugging Face" src="https://img.shields.io/badge/Hugging_Face-OneJev1.5-FFD21E?style=flat-square&logo=huggingface&logoColor=black"></a>
+  <a href="https://huggingface.co/collections/OmniJev/onejev16"><img alt="Hugging Face" src="https://img.shields.io/badge/Hugging_Face-OneJev1.6-FFD21E?style=flat-square&logo=huggingface&logoColor=black"></a>
   <a href="https://huggingface.co/spaces/BradNLP/OneJev"><img alt="Demo" src="https://img.shields.io/badge/Demo-Try_it-F83800?style=flat-square&logo=gradio&logoColor=white"></a>
   <a href="https://github.com/OmniJev/OneJev"><img alt="GitHub" src="https://img.shields.io/badge/GitHub-OmniJev%2FOneJev-181717?style=flat-square&logo=github&logoColor=white"></a>
   <a href="https://omnijev.github.io/OneJev/"><img alt="Website" src="https://img.shields.io/badge/Website-OneJev-0A84FF?style=flat-square&logo=googlechrome&logoColor=white"></a>
@@ -36,14 +36,14 @@ OneJev 是基于 [Qwen](https://huggingface.co/Qwen) 的多模态 System One 决
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="zh/progress-dark.svg">
-    <img alt="像素柱状图，Decision Index 0.3 公开部分得分，OneJev 1.5 对比 OneJev 1.0：0.8B 42.71 对 22.23（+20.5），4B 54.89 对 40.84（+14.0），9B 59.03 对 45.71（+13.3），27B 63.64 对 55.56（+8.1）" src="zh/progress.svg" width="100%">
+    <img alt="像素柱状图，Decision Index 0.3 公开部分得分，OneJev 1.6 对比 OneJev 1.5：0.8B 48.82 对 42.71（+6.1），4B 62.01 对 54.89（+7.1），9B 65.31 对 59.03（+6.3），27B 69.49 对 63.64（+5.8）" src="zh/progress.svg" width="100%">
   </picture>
 </p>
 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="zh/leaderboard-dark.svg">
-    <img alt="按模型尺寸分的四张 Decision Index 0.3 公开部分排行榜，各列前十，OneJev1.5 高亮：OneJev1.5-0.8B 在 48 个 2.5B 参数以下的模型中排第 1，OneJev1.5-4B 在 34 个 3B 到 6B 的模型中排第 2，OneJev1.5-9B 在 24 个 6B 到 12B 的模型中排第 1，OneJev1.5-27B 在 44 个 25B 到 36B 的模型中排第 5" src="zh/leaderboard.svg" width="100%">
+    <img alt="按模型尺寸分的四张 Decision Index 0.3 公开部分排行榜，各列前十，OneJev1.6 高亮：OneJev1.6-0.8B 在 51 个 2.5B 参数以下的模型中排第 1，OneJev1.6-4B 在 38 个 3B 到 6B 的模型中排第 1，OneJev1.6-9B 在 26 个 6B 到 12B 的模型中排第 1，OneJev1.6-27B 在 59 个 25B 到 36B 的模型中排第 2" src="zh/leaderboard.svg" width="100%">
   </picture>
 </p>
 
@@ -52,7 +52,7 @@ OneJev 是基于 [Qwen](https://huggingface.co/Qwen) 的多模态 System One 决
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="zh/results-dark.svg">
-    <img alt="像素柱状图：四个尺寸的 OneJev1.5 与 Jev 1.13、Jev-Omni 12B、Qwen3.8-27B 思考模式在 OneJev 测试集、DecisionBench 困难、TypeSafe 和 MMStar 上的对比" src="zh/results.svg" width="100%">
+    <img alt="像素柱状图：四个尺寸的 OneJev1.6 与 Jev 1.13、Jev-Omni 12B、Qwen3.8-27B 思考模式在 OneJev 测试集、DecisionBench 困难、TypeSafe 和 MMStar 上的对比" src="zh/results.svg" width="100%">
   </picture>
 </p>
 
@@ -77,7 +77,7 @@ OneJev 是基于 [Qwen](https://huggingface.co/Qwen) 的多模态 System One 决
 
 ```bash
 pip install "qev[torch] @ git+https://github.com/OmniJev/OneJev.git"
-qev serve --model OmniJev/OneJev1.5-4B --port 8000
+qev serve --model OmniJev/OneJev1.6-4B --port 8000
 ```
 
 ### 选项 B：llama.cpp
