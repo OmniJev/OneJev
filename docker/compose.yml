@@ -83,7 +83,7 @@ services:
     command:
       - serve
       - --model
-      - ${QEV_MODEL:-OmniJev/OneJev1.5-4B}
+      - ${QEV_MODEL:-OmniJev/OneJev1.6-4B}
       - --multimodal
       - --host
       - 0.0.0.0
@@ -114,7 +114,7 @@ services:
     command:
       - serve
       - --model
-      - ${QEV_MODEL:-OmniJev/OneJev1.5-4B}
+      - ${QEV_MODEL:-OmniJev/OneJev1.6-4B}
       - --multimodal
       - --no-cuda-graphs
       - --host

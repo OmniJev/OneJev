@@ -8,10 +8,10 @@ import os
 import sys
 from pathlib import Path
 
-DEFAULT_MODEL = "OmniJev/OneJev1.5-4B"
+DEFAULT_MODEL = "OmniJev/OneJev1.6-4B"
 
 MODEL_ALIASES = {f"onejev-{s.lower()}": f"OmniJev/OneJev-{s}" for s in ("0.8B", "4B", "9B", "27B", "27B-FP8")}
-MODEL_ALIASES |= {f"onejev1.5-{s.lower()}": f"OmniJev/OneJev1.5-{s}" for s in ("0.8B", "4B", "9B", "27B")}
+MODEL_ALIASES |= {f"onejev{v}-{s.lower()}": f"OmniJev/OneJev{v}-{s}" for v in ("1.5", "1.6") for s in ("0.8B", "4B", "9B", "27B")}
 
 
 def _resolve_model(name: str) -> str:
@@ -56,7 +56,7 @@ def _serve_gguf(args: argparse.Namespace) -> None:
     source = args.gguf or args.llama_url
     tok = args.tokenizer or tokenizer_repo(source)
     if tok is None:
-        raise SystemExit("cannot tell which OneJev size this GGUF is; pass --tokenizer OmniJev/OneJev1.5-<size>")
+        raise SystemExit("cannot tell which OneJev size this GGUF is; pass --tokenizer OmniJev/OneJev1.6-<size>")
     tok_dir = _tokenizer_dir(tok)
     calib_path = args.calibration or _find_calibration(tok)
     calib = Calibration.load(calib_path) if calib_path else None
@@ -158,7 +158,7 @@ def main() -> None:
 
     s = sub.add_parser("serve", help="start the API server")
     s.add_argument("--model", default=DEFAULT_MODEL,
-                   help="release alias (onejev1.5-4b), HF id (OmniJev/OneJev1.5-4B), or local path")
+                   help="release alias (onejev1.6-4b), HF id (OmniJev/OneJev1.6-4B), or local path")
     s.add_argument("--name", default=None, help="model name reported by the API (default: last path component)")
     s.add_argument("--calibration", default=None,
                    help="calibration.json with temperatures (default: the one shipped next to the weights, if any)")
