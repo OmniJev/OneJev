@@ -9,6 +9,7 @@
 
 <p align="center">
   <a href="https://huggingface.co/collections/OmniJev/onejev16"><img alt="Hugging Face" src="https://img.shields.io/badge/Hugging_Face-OneJev1.6-FFD21E?style=flat-square&logo=huggingface&logoColor=black"></a>
+  <a href="https://modelscope.ai/organization/OmniJev"><img alt="ModelScope" src="https://img.shields.io/badge/ModelScope-OneJev1.6-624AFF?style=flat-square&logo=modelscope&logoColor=white"></a>
   <a href="https://huggingface.co/spaces/BradNLP/OneJev"><img alt="Demo" src="https://img.shields.io/badge/Demo-Try_it-F83800?style=flat-square&logo=gradio&logoColor=white"></a>
   <a href="https://github.com/OmniJev/OneJev"><img alt="GitHub" src="https://img.shields.io/badge/GitHub-OmniJev%2FOneJev-181717?style=flat-square&logo=github&logoColor=white"></a>
   <a href="https://omnijev.github.io/OneJev/"><img alt="Website" src="https://img.shields.io/badge/Website-OneJev-0A84FF?style=flat-square&logo=googlechrome&logoColor=white"></a>
@@ -27,7 +28,7 @@ typed questions about screenshots, photos, videos and text in a single forward p
 
 ## 🔥 News
 
-- 🔥 **2026-10-17** We released [OneJev 1.6](https://huggingface.co/collections/OmniJev/onejev16). Welcome to have a try.
+- 🔥 **2026-10-17** We released OneJev 1.6 on [Hugging Face](https://huggingface.co/collections/OmniJev/onejev16) and [ModelScope](https://modelscope.ai/organization/OmniJev). Welcome to have a try.
 - **2026-10-13** We released [OneJev 1.5](https://huggingface.co/collections/OmniJev/onejev15). Welcome to have a try.
 - **2026-09-28** We released the online demo, 👉 [Click me](https://huggingface.co/spaces/BradNLP/OneJev).
 - **2026-09-27** We released [OneJev](https://huggingface.co/collections/OmniJev/onejev) and the [OneJev dataset](https://huggingface.co/datasets/OmniJev/OneJev-Data).

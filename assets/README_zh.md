@@ -9,6 +9,7 @@
 
 <p align="center">
   <a href="https://huggingface.co/collections/OmniJev/onejev16"><img alt="Hugging Face" src="https://img.shields.io/badge/Hugging_Face-OneJev1.6-FFD21E?style=flat-square&logo=huggingface&logoColor=black"></a>
+  <a href="https://modelscope.ai/organization/OmniJev"><img alt="ModelScope" src="https://img.shields.io/badge/ModelScope-OneJev1.6-624AFF?style=flat-square&logo=modelscope&logoColor=white"></a>
   <a href="https://huggingface.co/spaces/BradNLP/OneJev"><img alt="Demo" src="https://img.shields.io/badge/Demo-Try_it-F83800?style=flat-square&logo=gradio&logoColor=white"></a>
   <a href="https://github.com/OmniJev/OneJev"><img alt="GitHub" src="https://img.shields.io/badge/GitHub-OmniJev%2FOneJev-181717?style=flat-square&logo=github&logoColor=white"></a>
   <a href="https://omnijev.github.io/OneJev/"><img alt="Website" src="https://img.shields.io/badge/Website-OneJev-0A84FF?style=flat-square&logo=googlechrome&logoColor=white"></a>
@@ -26,7 +27,7 @@ OneJev 是基于 [Qwen](https://huggingface.co/Qwen) 的多模态 System One 决
 
 ## 🔥 新闻
 
-- 🔥 **2026-10-17** 我们发布了 [OneJev 1.6](https://huggingface.co/collections/OmniJev/onejev16)，欢迎试用。
+- 🔥 **2026-10-17** 我们在 [Hugging Face](https://huggingface.co/collections/OmniJev/onejev16) 和 [ModelScope](https://modelscope.ai/organization/OmniJev) 发布了 OneJev 1.6，欢迎试用。
 - **2026-10-13** 我们发布了 [OneJev 1.5](https://huggingface.co/collections/OmniJev/onejev15)，欢迎试用。
 - **2026-09-28** 我们上线了在线 demo，👉 [点我试用](https://huggingface.co/spaces/BradNLP/OneJev)。
 - **2026-09-27** 我们发布了 [OneJev](https://huggingface.co/collections/OmniJev/onejev) 和 [OneJev 数据集](https://huggingface.co/datasets/OmniJev/OneJev-Data)。
