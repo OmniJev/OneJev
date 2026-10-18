@@ -48,7 +48,7 @@ x-qev-gguf: &qev-gguf
   command:
     - serve
     - --gguf
-    - ${QEV_GGUF:-prithivMLmods/OneJev1.5-9B-GGUF:Q8_0}
+    - ${QEV_GGUF:-mradermacher/OneJev1.6-0.8B-GGUF:Q8_0}
     - --llama-server
     - /app/llama-server
     - --host

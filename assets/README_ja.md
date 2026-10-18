@@ -86,12 +86,12 @@ GGUF モデル向け。テキストと画像に対応し、動画には PyTorch 
 
 ```bash
 pip install git+https://github.com/OmniJev/OneJev.git
-qev serve --gguf prithivMLmods/OneJev1.5-9B-GGUF:Q8_0 --port 8000
+qev serve --gguf mradermacher/OneJev1.6-0.8B-GGUF:Q8_0 --port 8000
 ```
 
 ### 選択肢 C：Docker
 
-リポジトリには、ハードウェアを検出してバックエンドを 1 つ起動する Compose スタックが含まれています。llama.cpp の profile は初回起動時に `prithivMLmods/OneJev1.5-9B-GGUF:Q8_0` をダウンロードします。別のサイズや量子化は `docker/.env` の `QEV_GGUF` で指定してください。
+リポジトリには、ハードウェアを検出してバックエンドを 1 つ起動する Compose スタックが含まれています。llama.cpp の profile は初回起動時に `mradermacher/OneJev1.6-0.8B-GGUF:Q8_0` をダウンロードします。別のサイズや量子化は `docker/.env` の `QEV_GGUF` で指定してください。
 
 ```bash
 cp docker/.env.example docker/.env   # 非公開リポジトリでは HF_TOKEN を設定

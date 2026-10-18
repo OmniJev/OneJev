@@ -86,12 +86,12 @@ qev serve --model OmniJev/OneJev1.6-4B --port 8000
 
 ```bash
 pip install git+https://github.com/OmniJev/OneJev.git
-qev serve --gguf prithivMLmods/OneJev1.5-9B-GGUF:Q8_0 --port 8000
+qev serve --gguf mradermacher/OneJev1.6-0.8B-GGUF:Q8_0 --port 8000
 ```
 
 ### 选项 C：Docker
 
-仓库附带 Compose 栈，会自动检测硬件并启动一种后端。llama.cpp 配置首次启动时会下载 `prithivMLmods/OneJev1.5-9B-GGUF:Q8_0`；换尺寸或量化请在 `docker/.env` 中设置 `QEV_GGUF`。
+仓库附带 Compose 栈，会自动检测硬件并启动一种后端。llama.cpp 配置首次启动时会下载 `mradermacher/OneJev1.6-0.8B-GGUF:Q8_0`；换尺寸或量化请在 `docker/.env` 中设置 `QEV_GGUF`。
 
 ```bash
 cp docker/.env.example docker/.env   # 受限/私有仓库请设置 HF_TOKEN

@@ -88,13 +88,13 @@ For GGUF models. Supports text and images; use PyTorch for video. Install
 
 ```bash
 pip install git+https://github.com/OmniJev/OneJev.git
-qev serve --gguf prithivMLmods/OneJev1.5-9B-GGUF:Q8_0 --port 8000
+qev serve --gguf mradermacher/OneJev1.6-0.8B-GGUF:Q8_0 --port 8000
 ```
 
 ### Option C: Docker
 
 The repo ships a Compose stack that detects your hardware and starts one backend.
-The llama.cpp profiles download `prithivMLmods/OneJev1.5-9B-GGUF:Q8_0` on first start; set `QEV_GGUF` in `docker/.env`
+The llama.cpp profiles download `mradermacher/OneJev1.6-0.8B-GGUF:Q8_0` on first start; set `QEV_GGUF` in `docker/.env`
 for another size or quant.
 
 ```bash
