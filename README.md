@@ -74,7 +74,7 @@ For NVIDIA GPUs. Supports text, images and video. [Flide](https://github.com/Omn
 decision models.
 
 ```bash
-pip install flide
+pip install flide torchvision
 flide serve --model OmniJev/OneJev1.6-4B --port 8000
 ```
 

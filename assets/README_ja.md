@@ -72,7 +72,7 @@ OneJev は [Qwen](https://huggingface.co/Qwen) をベースにしたマルチモ
 NVIDIA GPU 向け。テキスト、画像、動画に対応しています。[Flide](https://github.com/OmniJev/Flide) は意思決定モデルのための推論エンジンです。
 
 ```bash
-pip install flide
+pip install flide torchvision
 flide serve --model OmniJev/OneJev1.6-4B --port 8000
 ```
 
