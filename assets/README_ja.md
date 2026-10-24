@@ -71,18 +71,18 @@ OneJev は [Qwen](https://huggingface.co/Qwen) をベースにしたマルチモ
 
 どちらかのバックエンドを起動し、下の Python サンプルを実行してください。
 
-### 選択肢 A：PyTorch
+### 選択肢 A：Flide（デフォルト）
 
-NVIDIA GPU 向け。テキスト、画像、動画に対応しています。
+NVIDIA GPU 向け。テキスト、画像、動画に対応しています。[Flide](https://github.com/OmniJev/Flide) は意思決定モデルのための推論エンジンです。
 
 ```bash
-pip install "qev[torch] @ git+https://github.com/OmniJev/OneJev.git"
-qev serve --model OmniJev/OneJev1.6-4B --port 8000
+pip install flide torchvision
+flide serve --model OmniJev/OneJev1.6-4B --port 8000
 ```
 
 ### 選択肢 B：llama.cpp
 
-GGUF モデル向け。テキストと画像に対応し、動画には PyTorch を使います。まず [llama.cpp](https://github.com/ggml-org/llama.cpp/blob/master/docs/install.md) をインストールしてください（macOS では `brew install llama.cpp`）。
+GGUF モデル向け。テキストと画像に対応し、動画には Flide を使います。まず [llama.cpp](https://github.com/ggml-org/llama.cpp/blob/master/docs/install.md) をインストールしてください（macOS では `brew install llama.cpp`）。
 
 ```bash
 pip install git+https://github.com/OmniJev/OneJev.git
@@ -159,7 +159,7 @@ torchrun --nproc-per-node 4 -m train.sft --config train/configs/onejev_4b_full.y
 4B の最終モデルは `train/runs/onejev_4b/final` に保存されます。次のコマンドで起動できます：
 
 ```bash
-qev serve --model train/runs/onejev_4b/final --port 8000
+flide serve --model train/runs/onejev_4b/final --format onejev --port 8000
 ```
 
 ## Friendly Links

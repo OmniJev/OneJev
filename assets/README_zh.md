@@ -71,18 +71,18 @@ OneJev 是基于 [Qwen](https://huggingface.co/Qwen) 的多模态 System One 决
 
 任选一种后端启动，再运行下面的 Python 示例。
 
-### 选项 A：PyTorch
+### 选项 A：Flide（默认）
 
-适用于 NVIDIA GPU，支持文本、图片和视频。
+适用于 NVIDIA GPU，支持文本、图片和视频。[Flide](https://github.com/OmniJev/Flide) 是我们的决策模型推理引擎。
 
 ```bash
-pip install "qev[torch] @ git+https://github.com/OmniJev/OneJev.git"
-qev serve --model OmniJev/OneJev1.6-4B --port 8000
+pip install flide torchvision
+flide serve --model OmniJev/OneJev1.6-4B --port 8000
 ```
 
 ### 选项 B：llama.cpp
 
-使用 GGUF 模型，支持文本和图片；视频使用 PyTorch。先安装 [llama.cpp](https://github.com/ggml-org/llama.cpp/blob/master/docs/install.md)（macOS 可运行 `brew install llama.cpp`）。
+使用 GGUF 模型，支持文本和图片；视频使用 Flide。先安装 [llama.cpp](https://github.com/ggml-org/llama.cpp/blob/master/docs/install.md)（macOS 可运行 `brew install llama.cpp`）。
 
 ```bash
 pip install git+https://github.com/OmniJev/OneJev.git
@@ -161,7 +161,7 @@ torchrun --nproc-per-node 4 -m train.sft --config train/configs/onejev_4b_full.y
 4B 的最终模型保存在 `train/runs/onejev_4b/final`，可直接启动：
 
 ```bash
-qev serve --model train/runs/onejev_4b/final --port 8000
+flide serve --model train/runs/onejev_4b/final --format onejev --port 8000
 ```
 
 ## Friendly Links

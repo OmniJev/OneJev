@@ -72,18 +72,19 @@ Accuracy (%). The OneJev test set is our own held-out set; the others are public
 
 Choose one backend, then run the Python example below.
 
-### Option A: PyTorch
+### Option A: Flide (default)
 
-For NVIDIA GPUs. Supports text, images and video.
+For NVIDIA GPUs. Supports text, images and video. [Flide](https://github.com/OmniJev/Flide) is our inference engine for
+decision models.
 
 ```bash
-pip install "qev[torch] @ git+https://github.com/OmniJev/OneJev.git"
-qev serve --model OmniJev/OneJev1.6-4B --port 8000
+pip install flide torchvision
+flide serve --model OmniJev/OneJev1.6-4B --port 8000
 ```
 
 ### Option B: llama.cpp
 
-For GGUF models. Supports text and images; use PyTorch for video. Install
+For GGUF models. Supports text and images; use Flide for video. Install
 [llama.cpp](https://github.com/ggml-org/llama.cpp/blob/master/docs/install.md) first (`brew install llama.cpp` on macOS).
 
 ```bash
@@ -173,7 +174,7 @@ For your own data, change `train` and `media_root` in the config.
 The final 4B checkpoint is saved to `train/runs/onejev_4b/final`. Start it with:
 
 ```bash
-qev serve --model train/runs/onejev_4b/final --port 8000
+flide serve --model train/runs/onejev_4b/final --format onejev --port 8000
 ```
 
 ## Friendly Links
