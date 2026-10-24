@@ -70,10 +70,6 @@ Accuracy (%). The OneJev test set is our own held-out set; the others are public
 
 ## Quick start
 
-Choose one backend, then run the Python example below.
-
-### Option A: Flide (default)
-
 For NVIDIA GPUs. Supports text, images and video. [Flide](https://github.com/OmniJev/Flide) is our inference engine for
 decision models.
 
@@ -82,53 +78,29 @@ pip install flide torchvision
 flide serve --model OmniJev/OneJev1.6-4B --port 8000
 ```
 
-### Option B: llama.cpp
-
-For GGUF models. Supports text and images; use Flide for video. Install
-[llama.cpp](https://github.com/ggml-org/llama.cpp/blob/master/docs/install.md) first (`brew install llama.cpp` on macOS).
-
-```bash
-pip install git+https://github.com/OmniJev/OneJev.git
-qev serve --gguf mradermacher/OneJev1.6-0.8B-GGUF:Q8_0 --port 8000
-```
-
-### Option C: Docker
-
-The repo ships a Compose stack that detects your hardware and starts one backend.
-The llama.cpp profiles download `mradermacher/OneJev1.6-0.8B-GGUF:Q8_0` on first start; set `QEV_GGUF` in `docker/.env`
-for another size or quant.
-
-```bash
-cp docker/.env.example docker/.env   # set HF_TOKEN for gated/private repos
-./docker/start.sh                    # auto-detect (Windows: .\docker\start.ps1)
-./docker/start.sh logs               # follow logs
-./docker/start.sh down               # stop every profile
-```
-
-Force a backend with `./docker/start.sh <torch|rocm|vulkan|gguf|gguf-rocm|cpu>`
-(add `--build` to rebuild). Every profile serves the API and the playground on :8000.
-On Windows only `torch` (NVIDIA) and `cpu` are available.
-
 ### Send a request
 
-Both backends serve the same API at `http://localhost:8000`. In another terminal, run this example with your own
-`screenshot.png`:
+The server answers at `http://localhost:8000`. In another terminal, run this example with your own `screenshot.png`:
 
 ```python
-from qev import Client, Choice, Noul, Score
-from qev.media import data_uri
+import base64
+import requests
 
-r = Client("http://localhost:8000").system_one(
-    state={"task": "Pay the open invoice from ACME", "screen": "<image:1>"},
-    media=[{"type": "image", "data": data_uri("screenshot.png")}],
-    questions={"done": Noul("The invoice has been paid"),
-               "next": Choice("What should the agent do next?",
-                              {"click": "click an element", "type": "type text", "scroll": "scroll", "stop": "stop"}),
-               "progress": Score("How far along is the task?", ["not started", "halfway", "almost done", "done"])},
-)
-r.answers["done"].noul                  # probability of yes
-r.answers["next"].probabilities         # one probability per option
-r.answers["progress"].score             # expected level
+image = base64.b64encode(open("screenshot.png", "rb").read()).decode()
+r = requests.post("http://localhost:8000/v1/systemone", json={
+    "state": {"task": "Pay the open invoice from ACME", "screen": "<image:1>"},
+    "media": [{"type": "image", "data": "data:image/png;base64," + image}],
+    "questions": {
+        "done": {"type": "noul", "instructions": "The invoice has been paid"},
+        "next": {"type": "choice", "instructions": "What should the agent do next?",
+                 "criteria": {"click": "click an element", "type": "type text", "scroll": "scroll", "stop": "stop"}},
+        "progress": {"type": "score", "instructions": "How far along is the task?",
+                     "criteria": ["not started", "halfway", "almost done", "done"]},
+    },
+}).json()
+r["answers"]["done"]["noul"]                 # probability of yes
+r["answers"]["next"]["probabilities"]        # one probability per option
+r["answers"]["progress"]["score"]            # expected level
 ```
 
 The API is compatible with TypeSafe System One. More examples: [video](examples/video.py),

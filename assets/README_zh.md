@@ -69,10 +69,6 @@ OneJev 是基于 [Qwen](https://huggingface.co/Qwen) 的多模态 System One 决
 
 ## 快速开始
 
-任选一种后端启动，再运行下面的 Python 示例。
-
-### 选项 A：Flide（默认）
-
 适用于 NVIDIA GPU，支持文本、图片和视频。[Flide](https://github.com/OmniJev/Flide) 是我们的决策模型推理引擎。
 
 ```bash
@@ -80,49 +76,29 @@ pip install flide torchvision
 flide serve --model OmniJev/OneJev1.6-4B --port 8000
 ```
 
-### 选项 B：llama.cpp
-
-使用 GGUF 模型，支持文本和图片；视频使用 Flide。先安装 [llama.cpp](https://github.com/ggml-org/llama.cpp/blob/master/docs/install.md)（macOS 可运行 `brew install llama.cpp`）。
-
-```bash
-pip install git+https://github.com/OmniJev/OneJev.git
-qev serve --gguf mradermacher/OneJev1.6-0.8B-GGUF:Q8_0 --port 8000
-```
-
-### 选项 C：Docker
-
-仓库附带 Compose 栈，会自动检测硬件并启动一种后端。llama.cpp 配置首次启动时会下载 `mradermacher/OneJev1.6-0.8B-GGUF:Q8_0`；换尺寸或量化请在 `docker/.env` 中设置 `QEV_GGUF`。
-
-```bash
-cp docker/.env.example docker/.env   # 受限/私有仓库请设置 HF_TOKEN
-./docker/start.sh                    # 自动检测（Windows：.\docker\start.ps1）
-./docker/start.sh logs               # 跟踪日志
-./docker/start.sh down               # 停止所有 profile
-```
-
-用 `./docker/start.sh <torch|rocm|vulkan|gguf|gguf-rocm|cpu>` 强制指定后端（加 `--build` 重新构建）。所有配置都在 :8000 提供接口和 Playground 界面。Windows 上仅支持 `torch`（NVIDIA）和 `cpu`。
-
 ### 发起请求
 
-两种后端都在 `http://localhost:8000` 提供相同接口。在另一个终端中，用你自己的 `screenshot.png` 运行示例：
+服务地址是 `http://localhost:8000`。在另一个终端中，用你自己的 `screenshot.png` 运行示例：
 
 ```python
-from qev import Client, Choice, Noul, Score
-from qev.media import data_uri
+import base64
+import requests
 
-r = Client("http://localhost:8000").system_one(
-    state={"任务": "支付 ACME 的待付款发票", "屏幕": "<image:1>"},
-    media=[{"type": "image", "data": data_uri("screenshot.png")}],
-    questions={
-        "完成状态": Noul("发票已付款"),
-        "下一步": Choice("智能体下一步应该做什么？",
-                       {"点击": "点击界面元素", "输入": "输入文字", "滚动": "滚动页面", "停止": "停止操作"}),
-        "任务进度": Score("任务完成到哪一步了？", ["尚未开始", "完成一半", "即将完成", "已完成"]),
+image = base64.b64encode(open("screenshot.png", "rb").read()).decode()
+r = requests.post("http://localhost:8000/v1/systemone", json={
+    "state": {"任务": "支付 ACME 的待付款发票", "屏幕": "<image:1>"},
+    "media": [{"type": "image", "data": "data:image/png;base64," + image}],
+    "questions": {
+        "完成状态": {"type": "noul", "instructions": "发票已付款"},
+        "下一步": {"type": "choice", "instructions": "智能体下一步应该做什么？",
+                  "criteria": {"点击": "点击界面元素", "输入": "输入文字", "滚动": "滚动页面", "停止": "停止操作"}},
+        "任务进度": {"type": "score", "instructions": "任务完成到哪一步了？",
+                    "criteria": ["尚未开始", "完成一半", "即将完成", "已完成"]},
     },
-)
-r.answers["完成状态"].noul               # “是”的概率
-r.answers["下一步"].probabilities        # 每个选项一个概率
-r.answers["任务进度"].score              # 期望等级
+}).json()
+r["answers"]["完成状态"]["noul"]             # “是”的概率
+r["answers"]["下一步"]["probabilities"]      # 每个选项一个概率
+r["answers"]["任务进度"]["score"]            # 期望等级
 ```
 
 接口兼容 TypeSafe System One。更多示例：[视频](../examples/video.py)、[curl](../examples/curl.sh)、[官方 TypeSafe SDK](../examples/official_sdk.py)。

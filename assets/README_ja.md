@@ -69,10 +69,6 @@ OneJev は [Qwen](https://huggingface.co/Qwen) をベースにしたマルチモ
 
 ## クイックスタート
 
-どちらかのバックエンドを起動し、下の Python サンプルを実行してください。
-
-### 選択肢 A：Flide（デフォルト）
-
 NVIDIA GPU 向け。テキスト、画像、動画に対応しています。[Flide](https://github.com/OmniJev/Flide) は意思決定モデルのための推論エンジンです。
 
 ```bash
@@ -80,47 +76,29 @@ pip install flide torchvision
 flide serve --model OmniJev/OneJev1.6-4B --port 8000
 ```
 
-### 選択肢 B：llama.cpp
-
-GGUF モデル向け。テキストと画像に対応し、動画には Flide を使います。まず [llama.cpp](https://github.com/ggml-org/llama.cpp/blob/master/docs/install.md) をインストールしてください（macOS では `brew install llama.cpp`）。
-
-```bash
-pip install git+https://github.com/OmniJev/OneJev.git
-qev serve --gguf mradermacher/OneJev1.6-0.8B-GGUF:Q8_0 --port 8000
-```
-
-### 選択肢 C：Docker
-
-リポジトリには、ハードウェアを検出してバックエンドを 1 つ起動する Compose スタックが含まれています。llama.cpp の profile は初回起動時に `mradermacher/OneJev1.6-0.8B-GGUF:Q8_0` をダウンロードします。別のサイズや量子化は `docker/.env` の `QEV_GGUF` で指定してください。
-
-```bash
-cp docker/.env.example docker/.env   # 非公開リポジトリでは HF_TOKEN を設定
-./docker/start.sh                    # 自動検出（Windows：.\docker\start.ps1）
-./docker/start.sh logs               # ログを追う
-./docker/start.sh down               # すべての profile を停止
-```
-
-`./docker/start.sh <torch|rocm|vulkan|gguf|gguf-rocm|cpu>` でバックエンドを強制できます（`--build` で再ビルド）。どの profile も :8000 で API と Playground UI を提供します。Windows では `torch`（NVIDIA）と `cpu` のみ利用できます。
-
 ### リクエストを送る
 
-どちらのバックエンドも `http://localhost:8000` で同じ API を提供します。別のターミナルで、自分の `screenshot.png` を使ってサンプルを実行してください：
+サーバーは `http://localhost:8000` で応答します。別のターミナルで、自分の `screenshot.png` を使ってサンプルを実行してください：
 
 ```python
-from qev import Client, Choice, Noul, Score
-from qev.media import data_uri
+import base64
+import requests
 
-r = Client("http://localhost:8000").system_one(
-    state={"task": "Pay the open invoice from ACME", "screen": "<image:1>"},
-    media=[{"type": "image", "data": data_uri("screenshot.png")}],
-    questions={"done": Noul("The invoice has been paid"),
-               "next": Choice("What should the agent do next?",
-                              {"click": "click an element", "type": "type text", "scroll": "scroll", "stop": "stop"}),
-               "progress": Score("How far along is the task?", ["not started", "halfway", "almost done", "done"])},
-)
-r.answers["done"].noul                  # 「はい」の確率
-r.answers["next"].probabilities         # 選択肢ごとの確率
-r.answers["progress"].score             # 期待レベル
+image = base64.b64encode(open("screenshot.png", "rb").read()).decode()
+r = requests.post("http://localhost:8000/v1/systemone", json={
+    "state": {"task": "Pay the open invoice from ACME", "screen": "<image:1>"},
+    "media": [{"type": "image", "data": "data:image/png;base64," + image}],
+    "questions": {
+        "done": {"type": "noul", "instructions": "The invoice has been paid"},
+        "next": {"type": "choice", "instructions": "What should the agent do next?",
+                 "criteria": {"click": "click an element", "type": "type text", "scroll": "scroll", "stop": "stop"}},
+        "progress": {"type": "score", "instructions": "How far along is the task?",
+                     "criteria": ["not started", "halfway", "almost done", "done"]},
+    },
+}).json()
+r["answers"]["done"]["noul"]                 # 「はい」の確率
+r["answers"]["next"]["probabilities"]        # 選択肢ごとの確率
+r["answers"]["progress"]["score"]            # 期待レベル
 ```
 
 API は TypeSafe System One と互換です。その他の例：[動画](../examples/video.py)、[curl](../examples/curl.sh)、[公式 TypeSafe SDK](../examples/official_sdk.py)。
