@@ -69,12 +69,38 @@ OneJev は [Qwen](https://huggingface.co/Qwen) をベースにしたマルチモ
 
 ## クイックスタート
 
+どちらかのバックエンドを起動し、下の Python サンプルを実行してください。
+
+### 選択肢 A：Flide
+
 NVIDIA GPU 向け。テキスト、画像、動画に対応しています。[Flide](https://github.com/OmniJev/Flide) は意思決定モデルのための推論エンジンです。
 
 ```bash
 pip install flide torchvision
 flide serve --model OmniJev/OneJev1.6-4B --port 8000
 ```
+
+### 選択肢 B：llama.cpp
+
+GGUF モデル向け。テキストと画像に対応し、動画には Flide を使います。まず [llama.cpp](https://github.com/ggml-org/llama.cpp/blob/master/docs/install.md) をインストールしてください（macOS では `brew install llama.cpp`）。
+
+```bash
+pip install git+https://github.com/OmniJev/OneJev.git
+qev serve --gguf mradermacher/OneJev1.6-0.8B-GGUF:Q8_0 --port 8000
+```
+
+### 選択肢 C：Docker
+
+リポジトリには、ハードウェアを検出してバックエンドを 1 つ起動する Compose スタックが含まれています。llama.cpp の profile は初回起動時に `mradermacher/OneJev1.6-0.8B-GGUF:Q8_0` をダウンロードします。別のサイズや量子化は `docker/.env` の `QEV_GGUF` で指定してください。
+
+```bash
+cp docker/.env.example docker/.env   # 非公開リポジトリでは HF_TOKEN を設定
+./docker/start.sh                    # 自動検出（Windows：.\docker\start.ps1）
+./docker/start.sh logs               # ログを追う
+./docker/start.sh down               # すべての profile を停止
+```
+
+`./docker/start.sh <torch|rocm|vulkan|gguf|gguf-rocm|cpu>` でバックエンドを強制できます（`--build` で再ビルド）。どの profile も :8000 で API と Playground UI を提供します。Windows では `torch`（NVIDIA）と `cpu` のみ利用できます。
 
 ### リクエストを送る
 

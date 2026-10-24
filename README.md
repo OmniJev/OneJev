@@ -70,6 +70,10 @@ Accuracy (%). The OneJev test set is our own held-out set; the others are public
 
 ## Quick start
 
+Choose one backend, then run the Python example below.
+
+### Option A: Flide
+
 For NVIDIA GPUs. Supports text, images and video. [Flide](https://github.com/OmniJev/Flide) is our inference engine for
 decision models.
 
@@ -77,6 +81,33 @@ decision models.
 pip install flide torchvision
 flide serve --model OmniJev/OneJev1.6-4B --port 8000
 ```
+
+### Option B: llama.cpp
+
+For GGUF models. Supports text and images; use Flide for video. Install
+[llama.cpp](https://github.com/ggml-org/llama.cpp/blob/master/docs/install.md) first (`brew install llama.cpp` on macOS).
+
+```bash
+pip install git+https://github.com/OmniJev/OneJev.git
+qev serve --gguf mradermacher/OneJev1.6-0.8B-GGUF:Q8_0 --port 8000
+```
+
+### Option C: Docker
+
+The repo ships a Compose stack that detects your hardware and starts one backend.
+The llama.cpp profiles download `mradermacher/OneJev1.6-0.8B-GGUF:Q8_0` on first start; set `QEV_GGUF` in `docker/.env`
+for another size or quant.
+
+```bash
+cp docker/.env.example docker/.env   # set HF_TOKEN for gated/private repos
+./docker/start.sh                    # auto-detect (Windows: .\docker\start.ps1)
+./docker/start.sh logs               # follow logs
+./docker/start.sh down               # stop every profile
+```
+
+Force a backend with `./docker/start.sh <torch|rocm|vulkan|gguf|gguf-rocm|cpu>`
+(add `--build` to rebuild). Every profile serves the API and the playground on :8000.
+On Windows only `torch` (NVIDIA) and `cpu` are available.
 
 ### Send a request
 

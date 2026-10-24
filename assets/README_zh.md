@@ -69,12 +69,38 @@ OneJev 是基于 [Qwen](https://huggingface.co/Qwen) 的多模态 System One 决
 
 ## 快速开始
 
+任选一种后端启动，再运行下面的 Python 示例。
+
+### 选项 A：Flide
+
 适用于 NVIDIA GPU，支持文本、图片和视频。[Flide](https://github.com/OmniJev/Flide) 是我们的决策模型推理引擎。
 
 ```bash
 pip install flide torchvision
 flide serve --model OmniJev/OneJev1.6-4B --port 8000
 ```
+
+### 选项 B：llama.cpp
+
+使用 GGUF 模型，支持文本和图片；视频使用 Flide。先安装 [llama.cpp](https://github.com/ggml-org/llama.cpp/blob/master/docs/install.md)（macOS 可运行 `brew install llama.cpp`）。
+
+```bash
+pip install git+https://github.com/OmniJev/OneJev.git
+qev serve --gguf mradermacher/OneJev1.6-0.8B-GGUF:Q8_0 --port 8000
+```
+
+### 选项 C：Docker
+
+仓库附带 Compose 栈，会自动检测硬件并启动一种后端。llama.cpp 配置首次启动时会下载 `mradermacher/OneJev1.6-0.8B-GGUF:Q8_0`；换尺寸或量化请在 `docker/.env` 中设置 `QEV_GGUF`。
+
+```bash
+cp docker/.env.example docker/.env   # 受限/私有仓库请设置 HF_TOKEN
+./docker/start.sh                    # 自动检测（Windows：.\docker\start.ps1）
+./docker/start.sh logs               # 跟踪日志
+./docker/start.sh down               # 停止所有 profile
+```
+
+用 `./docker/start.sh <torch|rocm|vulkan|gguf|gguf-rocm|cpu>` 强制指定后端（加 `--build` 重新构建）。所有配置都在 :8000 提供接口和 Playground 界面。Windows 上仅支持 `torch`（NVIDIA）和 `cpu`。
 
 ### 发起请求
 
