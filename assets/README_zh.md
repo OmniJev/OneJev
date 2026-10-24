@@ -78,7 +78,7 @@ OneJev 是基于 [Qwen](https://huggingface.co/Qwen) 的多模态 System One 决
 ```bash
 uv venv -p 3.12 && source .venv/bin/activate
 uv pip install flide torchvision
-flide serve --model OmniJev/OneJev1.6-4B --port 8000
+flide serve --model OmniJev/OneJev1.6-0.8B --port 8000
 ```
 
 ### 选项 B：llama.cpp

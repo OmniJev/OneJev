@@ -78,7 +78,7 @@ NVIDIA GPU 向け。テキスト、画像、動画に対応しています。[Fl
 ```bash
 uv venv -p 3.12 && source .venv/bin/activate
 uv pip install flide torchvision
-flide serve --model OmniJev/OneJev1.6-4B --port 8000
+flide serve --model OmniJev/OneJev1.6-0.8B --port 8000
 ```
 
 ### 選択肢 B：llama.cpp
