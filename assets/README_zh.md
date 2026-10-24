@@ -76,7 +76,8 @@ OneJev 是基于 [Qwen](https://huggingface.co/Qwen) 的多模态 System One 决
 适用于 NVIDIA GPU，支持文本、图片和视频。[Flide](https://github.com/OmniJev/Flide) 是我们的决策模型推理引擎。
 
 ```bash
-pip install flide torchvision
+uv venv -p 3.12 && source .venv/bin/activate
+uv pip install flide torchvision
 flide serve --model OmniJev/OneJev1.6-4B --port 8000
 ```
 
@@ -106,26 +107,24 @@ cp docker/.env.example docker/.env   # 受限/私有仓库请设置 HF_TOKEN
 
 服务地址是 `http://localhost:8000`。在另一个终端中，用你自己的 `screenshot.png` 运行示例：
 
-```python
-import base64
-import requests
-
-image = base64.b64encode(open("screenshot.png", "rb").read()).decode()
-r = requests.post("http://localhost:8000/v1/systemone", json={
-    "state": {"任务": "支付 ACME 的待付款发票", "屏幕": "<image:1>"},
-    "media": [{"type": "image", "data": "data:image/png;base64," + image}],
-    "questions": {
-        "完成状态": {"type": "noul", "instructions": "发票已付款"},
-        "下一步": {"type": "choice", "instructions": "智能体下一步应该做什么？",
-                  "criteria": {"点击": "点击界面元素", "输入": "输入文字", "滚动": "滚动页面", "停止": "停止操作"}},
-        "任务进度": {"type": "score", "instructions": "任务完成到哪一步了？",
-                    "criteria": ["尚未开始", "完成一半", "即将完成", "已完成"]},
-    },
-}).json()
-r["answers"]["完成状态"]["noul"]             # “是”的概率
-r["answers"]["下一步"]["probabilities"]      # 每个选项一个概率
-r["answers"]["任务进度"]["score"]            # 期望等级
+```bash
+IMG=$(base64 -w0 screenshot.png)
+curl http://localhost:8000/v1/systemone -H "Content-Type: application/json" -d @- <<EOF
+{
+  "state": {"任务": "支付 ACME 的待付款发票", "屏幕": "<image:1>"},
+  "media": [{"type": "image", "data": "data:image/png;base64,$IMG"}],
+  "questions": {
+    "完成状态": {"type": "noul", "instructions": "发票已付款"},
+    "下一步": {"type": "choice", "instructions": "智能体下一步应该做什么？",
+              "criteria": {"点击": "点击界面元素", "输入": "输入文字", "滚动": "滚动页面", "停止": "停止操作"}},
+    "任务进度": {"type": "score", "instructions": "任务完成到哪一步了？",
+                "criteria": ["尚未开始", "完成一半", "即将完成", "已完成"]}
+  }
+}
+EOF
 ```
+
+`answers.完成状态.noul` 是“是”的概率，`answers.下一步.probabilities` 给出每个选项的概率，`answers.任务进度.score` 是期望等级。
 
 接口兼容 TypeSafe System One。更多示例：[视频](../examples/video.py)、[curl](../examples/curl.sh)、[官方 TypeSafe SDK](../examples/official_sdk.py)。
 

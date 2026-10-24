@@ -76,7 +76,8 @@ OneJev は [Qwen](https://huggingface.co/Qwen) をベースにしたマルチモ
 NVIDIA GPU 向け。テキスト、画像、動画に対応しています。[Flide](https://github.com/OmniJev/Flide) は意思決定モデルのための推論エンジンです。
 
 ```bash
-pip install flide torchvision
+uv venv -p 3.12 && source .venv/bin/activate
+uv pip install flide torchvision
 flide serve --model OmniJev/OneJev1.6-4B --port 8000
 ```
 
@@ -106,26 +107,24 @@ cp docker/.env.example docker/.env   # 非公開リポジトリでは HF_TOKEN �
 
 サーバーは `http://localhost:8000` で応答します。別のターミナルで、自分の `screenshot.png` を使ってサンプルを実行してください：
 
-```python
-import base64
-import requests
-
-image = base64.b64encode(open("screenshot.png", "rb").read()).decode()
-r = requests.post("http://localhost:8000/v1/systemone", json={
-    "state": {"task": "Pay the open invoice from ACME", "screen": "<image:1>"},
-    "media": [{"type": "image", "data": "data:image/png;base64," + image}],
-    "questions": {
-        "done": {"type": "noul", "instructions": "The invoice has been paid"},
-        "next": {"type": "choice", "instructions": "What should the agent do next?",
-                 "criteria": {"click": "click an element", "type": "type text", "scroll": "scroll", "stop": "stop"}},
-        "progress": {"type": "score", "instructions": "How far along is the task?",
-                     "criteria": ["not started", "halfway", "almost done", "done"]},
-    },
-}).json()
-r["answers"]["done"]["noul"]                 # 「はい」の確率
-r["answers"]["next"]["probabilities"]        # 選択肢ごとの確率
-r["answers"]["progress"]["score"]            # 期待レベル
+```bash
+IMG=$(base64 -w0 screenshot.png)
+curl http://localhost:8000/v1/systemone -H "Content-Type: application/json" -d @- <<EOF
+{
+  "state": {"task": "Pay the open invoice from ACME", "screen": "<image:1>"},
+  "media": [{"type": "image", "data": "data:image/png;base64,$IMG"}],
+  "questions": {
+    "done": {"type": "noul", "instructions": "The invoice has been paid"},
+    "next": {"type": "choice", "instructions": "What should the agent do next?",
+             "criteria": {"click": "click an element", "type": "type text", "scroll": "scroll", "stop": "stop"}},
+    "progress": {"type": "score", "instructions": "How far along is the task?",
+                 "criteria": ["not started", "halfway", "almost done", "done"]}
+  }
+}
+EOF
 ```
+
+`answers.done.noul` は「はい」の確率、`answers.next.probabilities` は選択肢ごとの確率、`answers.progress.score` は期待レベルです。
 
 API は TypeSafe System One と互換です。その他の例：[動画](../examples/video.py)、[curl](../examples/curl.sh)、[公式 TypeSafe SDK](../examples/official_sdk.py)。
 

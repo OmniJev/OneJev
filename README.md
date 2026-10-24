@@ -78,7 +78,8 @@ For NVIDIA GPUs. Supports text, images and video. [Flide](https://github.com/Omn
 decision models.
 
 ```bash
-pip install flide torchvision
+uv venv -p 3.12 && source .venv/bin/activate
+uv pip install flide torchvision
 flide serve --model OmniJev/OneJev1.6-4B --port 8000
 ```
 
@@ -113,26 +114,24 @@ On Windows only `torch` (NVIDIA) and `cpu` are available.
 
 The server answers at `http://localhost:8000`. In another terminal, run this example with your own `screenshot.png`:
 
-```python
-import base64
-import requests
-
-image = base64.b64encode(open("screenshot.png", "rb").read()).decode()
-r = requests.post("http://localhost:8000/v1/systemone", json={
-    "state": {"task": "Pay the open invoice from ACME", "screen": "<image:1>"},
-    "media": [{"type": "image", "data": "data:image/png;base64," + image}],
-    "questions": {
-        "done": {"type": "noul", "instructions": "The invoice has been paid"},
-        "next": {"type": "choice", "instructions": "What should the agent do next?",
-                 "criteria": {"click": "click an element", "type": "type text", "scroll": "scroll", "stop": "stop"}},
-        "progress": {"type": "score", "instructions": "How far along is the task?",
-                     "criteria": ["not started", "halfway", "almost done", "done"]},
-    },
-}).json()
-r["answers"]["done"]["noul"]                 # probability of yes
-r["answers"]["next"]["probabilities"]        # one probability per option
-r["answers"]["progress"]["score"]            # expected level
+```bash
+IMG=$(base64 -w0 screenshot.png)
+curl http://localhost:8000/v1/systemone -H "Content-Type: application/json" -d @- <<EOF
+{
+  "state": {"task": "Pay the open invoice from ACME", "screen": "<image:1>"},
+  "media": [{"type": "image", "data": "data:image/png;base64,$IMG"}],
+  "questions": {
+    "done": {"type": "noul", "instructions": "The invoice has been paid"},
+    "next": {"type": "choice", "instructions": "What should the agent do next?",
+             "criteria": {"click": "click an element", "type": "type text", "scroll": "scroll", "stop": "stop"}},
+    "progress": {"type": "score", "instructions": "How far along is the task?",
+                 "criteria": ["not started", "halfway", "almost done", "done"]}
+  }
+}
+EOF
 ```
+
+`answers.done.noul` is the probability of yes, `answers.next.probabilities` gives one probability per option and `answers.progress.score` is the expected level.
 
 The API is compatible with TypeSafe System One. More examples: [video](examples/video.py),
 [curl](examples/curl.sh), [official TypeSafe SDK](examples/official_sdk.py).
