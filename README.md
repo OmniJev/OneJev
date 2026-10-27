@@ -5,7 +5,7 @@
   </picture>
 </p>
 
-<p align="center"><b>English</b> · <a href="assets/README_zh.md">简体中文</a> · <a href="assets/README_ja.md">日本語</a></p>
+<p align="center"><b>English</b> · <a href="assets/README_zh.md">简体中文</a> · <a href="assets/README_zh-Hant.md">繁體中文</a> · <a href="assets/README_ja.md">日本語</a> · <a href="assets/README_ko.md">한국어</a> · <a href="assets/README_th.md">ภาษาไทย</a> · <a href="assets/README_tr.md">Türkçe</a></p>
 
 <p align="center">
   <a href="https://huggingface.co/collections/OmniJev/onejev16"><img alt="Hugging Face" src="https://img.shields.io/badge/Hugging_Face-OneJev1.6-FFD21E?style=flat-square&logo=huggingface&logoColor=black"></a>
