@@ -17,7 +17,7 @@
 <p align="center">
   <a href="https://huggingface.co/datasets/OmniJev/OneJev-Data"><img alt="Data" src="https://img.shields.io/badge/Data-OneJev--Data-FF9D00?style=flat-square&logo=huggingface&logoColor=white"></a>
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/License-Apache_2.0-D22128?style=flat-square&logo=apache&logoColor=white"></a>
-  <a href="https://www.python.org"><img alt="Python" src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white"></a>
+  <a href="https://github.com/OmniJev/Flide"><img alt="Flide" src="https://img.shields.io/badge/Engine-Flide-00A890?style=flat-square&logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjIgMS41IDE3IDE3IiBzaGFwZS1yZW5kZXJpbmc9ImNyaXNwRWRnZXMiPjxwYXRoIGZpbGw9IiMzQTg2RkYiIGQ9Ik0yIDhoN3YxaC03ek0yIDloN3YxaC03ek0yIDEwaDd2MWgtN3pNMiAxMWg3djFoLTd6Ii8+PHBhdGggZmlsbD0iI0VGNDc2RiIgZD0iTTEyIDNoNHYxaC00ek0xNyAzaDJ2MWgtMnpNMTEgNGg1djFoLTV6TTE3IDRoMnYxaC0yek0xMCA1aDJ2MWgtMnpNMTAgNmgydjFoLTJ6TTkgN2gydjFoLTJ6TTkgOGgydjFoLTJ6Ii8+PHBhdGggZmlsbD0iI0YyOEUyQiIgZD0iTTkgOWg3djFoLTd6TTE3IDloMnYxaC0yek05IDEwaDd2MWgtN3pNMTcgMTBoMnYxaC0yeiIvPjxwYXRoIGZpbGw9IiMwMEE4OTAiIGQ9Ik05IDExaDJ2MWgtMnpNOSAxMmgydjFoLTJ6TTEwIDEzaDJ2MWgtMnpNMTAgMTRoMnYxaC0yek0xMSAxNWg1djFoLTV6TTE3IDE1aDJ2MWgtMnpNMTIgMTZoNHYxaC00ek0xNyAxNmgydjFoLTJ6Ii8+PC9zdmc+Cg=="></a>
   <a href="https://pytorch.org"><img alt="PyTorch" src="https://img.shields.io/badge/PyTorch-2.6%2B-EE4C2C?style=flat-square&logo=pytorch&logoColor=white"></a>
   <a href="https://github.com/huggingface/transformers"><img alt="Transformers" src="https://img.shields.io/badge/Transformers-5%2B-FFD21E?style=flat-square&logo=huggingface&logoColor=black"></a>
 </p>
