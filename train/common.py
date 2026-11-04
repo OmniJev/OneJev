@@ -371,9 +371,6 @@ def short_names(paths: Sequence[str]) -> list[str]:
     return sorted({p.split(".")[-1] for p in paths})
 
 
-_TENSOR_KEEP = True
-
-
 def readout_logits(model, input_ids, attention_mask, ends):
     """Full-vocabulary logits at each row's last real token, under RIGHT padding.
 
@@ -382,18 +379,16 @@ def readout_logits(model, input_ids, attention_mask, ends):
     position_ids (arange) are already correct for every real token. Left padding would shift the
     positions of the real tokens, which is why it is not used here.
 
-    We never materialise [B, T, V]. The primary path passes `logits_to_keep` as a tensor of the
-    distinct readout positions, exactly like qev.engine._run_batched. If a model rejects the
-    tensor form, we fall back to an integer tail width, which every implementation supports and
-    which is just as cheap because batches are length-sorted.
+    The primary path passes `logits_to_keep` as a tensor of the distinct readout positions,
+    exactly like qev.engine._run_batched. If a model rejects the tensor form, only that model
+    uses the integer-tail fallback. An allocation failure is propagated to the caller.
     """
     import torch
 
-    global _TENSOR_KEEP
     bsz, seqlen = input_ids.shape
     ends = [int(e) for e in ends]
     rows = torch.arange(bsz, device=input_ids.device)
-    if _TENSOR_KEEP:
+    if getattr(model, "_qev_tensor_logits_to_keep", True):
         keep = sorted(set(ends))
         try:
             ltk = torch.tensor(keep, dtype=torch.long, device=input_ids.device)
@@ -401,8 +396,10 @@ def readout_logits(model, input_ids, attention_mask, ends):
                         return_dict=True, logits_to_keep=ltk)
             pos = torch.tensor([keep.index(e) for e in ends], dtype=torch.long, device=input_ids.device)
             return out.logits[rows, pos]
+        except torch.OutOfMemoryError:
+            raise
         except Exception as exc:
-            _TENSOR_KEEP = False
+            model._qev_tensor_logits_to_keep = False
             log.warning("tensor logits_to_keep unavailable (%s); using integer tail width", exc)
     width = seqlen - min(ends)
     out = model(input_ids=input_ids, attention_mask=attention_mask, use_cache=False,
