@@ -8,6 +8,8 @@ import os
 import sys
 from pathlib import Path
 
+from .media import MAX_IMAGE_BYTES
+
 DEFAULT_MODEL = "OmniJev/OneJev1.6-4B"
 
 MODEL_ALIASES = {f"onejev-{s.lower()}": f"OmniJev/OneJev-{s}" for s in ("0.8B", "4B", "9B", "27B", "27B-FP8")}
@@ -19,12 +21,17 @@ def _resolve_model(name: str) -> str:
     name = MODEL_ALIASES.get(name, name)
     if Path(name).exists():
         return name
-    import glob
+    if os.environ.get("HF_HUB_OFFLINE", "").strip().upper() in {"1", "TRUE", "YES", "ON"}:
+        from huggingface_hub import snapshot_download
 
-    hub = os.environ.get("HF_HUB_CACHE") or os.path.join(os.environ.get("HF_HOME", os.path.expanduser("~/.cache/huggingface")), "hub")
-    snaps = sorted(glob.glob(os.path.join(hub, "models--" + name.replace("/", "--"), "snapshots", "*")))
-    if snaps and os.environ.get("HF_HUB_OFFLINE") == "1":
-        return snaps[-1]
+        hub = os.environ.get("HF_HUB_CACHE") or os.path.join(os.environ.get("HF_HOME", os.path.expanduser("~/.cache/huggingface")), "hub")
+        parts = name.split("/")
+        repo, sub = "/".join(parts[:2]), "/".join(parts[2:])
+        snapshot = snapshot_download(repo, cache_dir=hub, local_files_only=True)
+        path = Path(snapshot) / sub if sub else Path(snapshot)
+        if not path.is_dir():
+            raise FileNotFoundError(f"cached model directory does not exist: {path}")
+        return str(path)
     return name
 
 
@@ -80,7 +87,8 @@ def _serve_gguf(args: argparse.Namespace) -> None:
     else:
         name = args.name or (args.gguf or tok).split("/")[-1].replace(":", "-")
     engine = LlamaCppEngine(url, tok_dir, calibration=calib, name=name, max_branch_tokens=args.max_branch_tokens,
-                            max_request_tokens=args.max_request_tokens, image_config=image_config)
+                            max_request_tokens=args.max_request_tokens, image_config=image_config,
+                            max_image_bytes=args.max_image_bytes)
     app = create_app(engine, model_name=name)
     uvicorn.run(app, host=args.host, port=args.port, log_level="info")
 
@@ -124,7 +132,7 @@ def cmd_serve(args: argparse.Namespace) -> None:
                                   allow_local_paths=args.media_root is not None,
                                   gpu_preprocess=not args.no_gpu_preprocess, cuda_graphs=not args.no_cuda_graphs,
                                   quantize=args.quantize, max_branch_tokens=args.max_branch_tokens,
-                                  max_request_tokens=args.max_request_tokens)
+                                  max_request_tokens=args.max_request_tokens, max_image_bytes=args.max_image_bytes)
     else:
         engine = DecisionEngine(model_path, device=args.device, dtype=args.dtype, calibration=calib,
                                 fork_mode=args.fork_mode, head_dtype=args.head_dtype, cuda_graphs=not args.no_cuda_graphs,
@@ -138,9 +146,13 @@ def cmd_serve(args: argparse.Namespace) -> None:
 def cmd_ask(args: argparse.Namespace) -> None:
     from .client import Client
 
-    body = json.load(open(args.request)) if args.request != "-" else json.load(sys.stdin)
+    if args.request == "-":
+        body = json.load(sys.stdin)
+    else:
+        with open(args.request, encoding="utf-8") as source:
+            body = json.load(source)
     c = Client(args.url)
-    r = c.system_one(body["state"], body["questions"], model=body.get("model"), media=body.get("media"),
+    r = c.system_one(body.get("state"), body["questions"], model=body.get("model"), media=body.get("media"),
                      **({"debug": 1} if args.debug else {}))
     print(json.dumps({"model": r.model, "answers": {k: v.raw for k, v in r.answers.items()}, "usage": r.usage, "qev": r.meta},
                      ensure_ascii=False, indent=2))
@@ -150,6 +162,13 @@ def cmd_models(args: argparse.Namespace) -> None:
     from .client import Client
 
     print(json.dumps(Client(args.url).models(), indent=2))
+
+
+def _positive_int(value: str) -> int:
+    number = int(value)
+    if number <= 0:
+        raise argparse.ArgumentTypeError("must be a positive integer")
+    return number
 
 
 def main() -> None:
@@ -170,15 +189,17 @@ def main() -> None:
                    help="vision checkpoint (OneJev): requests may carry media referenced as <image:N> / <video:N>")
     s.add_argument("--media-root", default=None,
                    help="with --multimodal, also accept media paths inside this directory (URLs and base64 always work)")
+    s.add_argument("--max-image-bytes", type=_positive_int, default=MAX_IMAGE_BYTES,
+                   help="maximum encoded bytes per image or video frame (default: 32 MiB)")
     s.add_argument("--no-cuda-graphs", action="store_true",
                    help="run the decoder eagerly (CUDA graphs are captured per padded length)")
     s.add_argument("--quantize", default=None, choices=["fp8"],
                    help="with --multimodal, run the decoder's linear layers in FP8 (an -FP8 checkpoint does this by itself)")
     s.add_argument("--no-gpu-preprocess", action="store_true",
                    help="with --multimodal, normalise images and frames on the CPU (they are resized on the CPU either way)")
-    s.add_argument("--max-branch-tokens", type=int, default=32768,
+    s.add_argument("--max-branch-tokens", type=_positive_int, default=32768,
                    help="longest state plus one question the server accepts (the bases take 262,144 positions)")
-    s.add_argument("--max-request-tokens", type=int, default=65536, help="longest whole request the server accepts")
+    s.add_argument("--max-request-tokens", type=_positive_int, default=65536, help="longest whole request the server accepts")
     s.add_argument("--gguf", default=None,
                    help="run a GGUF model on llama.cpp: a local .gguf file or a Hub repo:quant "
                         "(prithivMLmods/OneJev1.5-9B-GGUF:Q4_K_M); needs llama-server")
@@ -187,7 +208,7 @@ def main() -> None:
     s.add_argument("--mmproj", default=None, help="vision projector GGUF for --gguf (found next to a local file)")
     s.add_argument("--tokenizer", default=None,
                    help="OneJev repository or directory for the tokenizer with --gguf (guessed from the file name)")
-    s.add_argument("--parallel", type=int, default=1, help="llama-server slots for --gguf")
+    s.add_argument("--parallel", type=_positive_int, default=1, help="llama-server slots for --gguf")
     s.add_argument("--host", default="0.0.0.0")
     s.add_argument("--port", type=int, default=8000)
     s.set_defaults(func=cmd_serve)

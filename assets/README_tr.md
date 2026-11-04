@@ -108,7 +108,7 @@ Arka ucu `./docker/start.sh <torch|rocm|vulkan|gguf|gguf-rocm|cpu>` ile zorlayab
 Sunucu `http://localhost:8000` adresinden yanıt verir. Başka bir terminalde, kendi `screenshot.png` dosyanızla bu örneği çalıştırın:
 
 ```bash
-IMG=$(base64 -w0 screenshot.png)
+IMG=$(base64 < screenshot.png | tr -d '\r\n')
 curl http://localhost:8000/v1/systemone -H "Content-Type: application/json" -d @- <<EOF
 {
   "state": {"task": "Pay the open invoice from ACME", "screen": "<image:1>"},

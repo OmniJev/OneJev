@@ -26,7 +26,8 @@ $AllProfiles  = @('torch', 'rocm', 'gguf', 'gguf-rocm', 'vulkan', 'cpu')
 function Get-Backend {
   if ($env:QEV_BACKEND) { return $env:QEV_BACKEND }
   if (Get-Command nvidia-smi -ErrorAction SilentlyContinue) {
-    if ((& nvidia-smi -L 2>$null | Out-String).Trim()) { return 'torch' }
+    $devices = (& nvidia-smi -L 2>$null | Out-String).Trim()
+    if ($LASTEXITCODE -eq 0 -and $devices) { return 'torch' }
   }
   return 'cpu'
 }
@@ -77,6 +78,7 @@ switch ($Action) {
     if (-not $Foreground) { $composeArgs += '-d' }
     Write-Host "backend '$Backend' -> docker compose $($composeArgs -join ' ')"
     & docker compose @composeArgs
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     $svc = & docker compose @profileArgs ps --services | Select-Object -First 1
     $addr = if ($svc) { & docker compose @profileArgs port $svc 8000 | Select-Object -First 1 }
     $port = if ($addr) { ($addr -split ':')[-1] } else { '8000' }

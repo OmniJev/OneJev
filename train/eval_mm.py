@@ -36,6 +36,8 @@ def main() -> int:
     ap.add_argument("--dump-preds", default=None, help="directory: one <name>.preds.jsonl per eval file (id, labels, "
                                                        "probabilities, gold) for per-row comparisons between models")
     args = ap.parse_args()
+    if args.dump_preds:
+        Path(args.dump_preds).mkdir(parents=True, exist_ok=True)
 
     import torch
 

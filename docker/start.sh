@@ -61,6 +61,7 @@ detect_gids() {
     [ -z "${AMD_RENDER_GID:-}" ] && export AMD_RENDER_GID="$gid"
     [ -z "${DRI_RENDER_GID:-}" ] && export DRI_RENDER_GID="$gid"
   fi
+  return 0
 }
 
 backend=""

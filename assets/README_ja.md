@@ -108,7 +108,7 @@ cp docker/.env.example docker/.env   # 非公開リポジトリでは HF_TOKEN �
 サーバーは `http://localhost:8000` で応答します。別のターミナルで、自分の `screenshot.png` を使ってサンプルを実行してください：
 
 ```bash
-IMG=$(base64 -w0 screenshot.png)
+IMG=$(base64 < screenshot.png | tr -d '\r\n')
 curl http://localhost:8000/v1/systemone -H "Content-Type: application/json" -d @- <<EOF
 {
   "state": {"task": "Pay the open invoice from ACME", "screen": "<image:1>"},

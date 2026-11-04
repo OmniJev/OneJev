@@ -108,7 +108,7 @@ cp docker/.env.example docker/.env   # ตั้ง HF_TOKEN สำหรับ�
 เซิร์ฟเวอร์ตอบที่ `http://localhost:8000` เปิดเทอร์มินัลอีกหน้าต่างแล้วรันตัวอย่างนี้กับไฟล์ `screenshot.png` ของคุณเอง
 
 ```bash
-IMG=$(base64 -w0 screenshot.png)
+IMG=$(base64 < screenshot.png | tr -d '\r\n')
 curl http://localhost:8000/v1/systemone -H "Content-Type: application/json" -d @- <<EOF
 {
   "state": {"task": "Pay the open invoice from ACME", "screen": "<image:1>"},

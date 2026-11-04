@@ -18,6 +18,7 @@ import copy
 import logging
 import threading
 import time
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -49,6 +50,20 @@ def local_model_dir(name: str) -> str:
 
 class GraphMemoryLow(RuntimeError):
     """Not enough free GPU memory to capture another graph, even after dropping the cached ones."""
+
+
+@contextmanager
+def _capture_graph(graph, stream=None):
+    """Allocate BLAS scratch space in this graph's own memory pool."""
+    import torch
+
+    # PyTorch's stream-keyed workspace cache can make independent graphs share
+    # scratch memory. Evicting its owning graph then breaks surviving replays.
+    # https://github.com/pytorch/pytorch/issues/193402
+    torch.cuda.synchronize()
+    torch._C._cuda_clearCublasWorkspaces()
+    with torch.cuda.graph(graph, stream=stream):
+        yield
 
 
 def _host_available() -> int:
@@ -99,6 +114,7 @@ class DecoderGraphs:
         if self.sizes:
             self.max_len, self.max_graphs = self.sizes[-1], max(max_graphs, len(self.sizes))
         self.graphs: collections.OrderedDict[int, tuple] = collections.OrderedDict()
+        self._warmup_stream = None
 
     def _size(self, n: int) -> int | None:
         if self.sizes:
@@ -154,7 +170,11 @@ class DecoderGraphs:
         def run():
             return self.decoder(inputs_embeds=emb, position_ids=pos, use_cache=False, return_dict=True).last_hidden_state
 
-        side = torch.cuda.Stream()
+        # cuBLAS keeps a workspace per stream even after its graphs are evicted.
+        # Reuse the warmup stream so new prompt sizes do not accumulate them.
+        if self._warmup_stream is None:
+            self._warmup_stream = torch.cuda.Stream(device=embeds.device)
+        side = self._warmup_stream
         side.wait_stream(torch.cuda.current_stream())
         with torch.cuda.stream(side):
             for _ in range(2):
@@ -164,7 +184,7 @@ class DecoderGraphs:
             self.graphs.popitem(last=False)
         _make_room(self._evict)
         graph = torch.cuda.CUDAGraph()
-        with torch.cuda.graph(graph):
+        with _capture_graph(graph):
             out = run()
         self.graphs[size] = (emb, pos, out, graph)
         log.info("captured a decoder graph for %d tokens", size)
@@ -194,6 +214,7 @@ class ForkGraphs:
         self.max_graphs = max_graphs
         self.prefills: collections.OrderedDict[int, tuple] = collections.OrderedDict()
         self.branches: collections.OrderedDict[tuple[int, int, int], tuple] = collections.OrderedDict()
+        self._warmup_stream = None
 
     def __call__(self, embeds, positions, suffixes: list[list[int]], delta: int):
         """embeds (1, P, hidden) and positions (3, 1, P) of the prefix; token ids of each branch. Returns the
@@ -251,10 +272,12 @@ class ForkGraphs:
         self.branches.clear()
         self.prefills.clear()
 
-    def _side_warmup(self, run) -> None:
+    def _side_warmup(self, run, device) -> None:
         import torch
 
-        side = torch.cuda.Stream()
+        if self._warmup_stream is None:
+            self._warmup_stream = torch.cuda.Stream(device=device)
+        side = self._warmup_stream
         side.wait_stream(torch.cuda.current_stream())
         with torch.cuda.stream(side):
             for _ in range(2):
@@ -277,12 +300,12 @@ class ForkGraphs:
                                 attention_mask={"full_attention": mask.view(1, 1, size, size),
                                                 "linear_attention": None}).past_key_values
 
-        self._side_warmup(run)
+        self._side_warmup(run, dev)
         while len(self.prefills) >= self.max_graphs:
             self._drop_prefix(next(iter(self.prefills)))
         _make_room(self._evict)
         graph = torch.cuda.CUDAGraph()
-        with torch.cuda.graph(graph):
+        with _capture_graph(graph):
             cache = run()
         self.prefills[size] = (emb, pos, pad, cache, graph)
         log.info("captured a prefix graph for %d tokens", size)
@@ -309,12 +332,12 @@ class ForkGraphs:
                                 attention_mask={"full_attention": mask.view(1, 1, wide, size + wide).expand(rows, 1, -1, -1),
                                                 "linear_attention": None}).last_hidden_state
 
-        self._side_warmup(run)
+        self._side_warmup(run, dev)
         while len(self.branches) >= 8 * self.max_graphs:
             self.branches.popitem(last=False)
         _make_room(lambda: self._evict(keep=size))
         graph = torch.cuda.CUDAGraph()
-        with torch.cuda.graph(graph):
+        with _capture_graph(graph):
             out = run()
         self.branches[key] = (ids, base, pad, out, graph)
         log.info("captured a branch graph for %d rows x %d tokens over a %d-token prefix", rows, wide, size)
@@ -352,6 +375,7 @@ class MMDecisionEngine(DecisionEngine):
         gpu_preprocess: bool = False,
         cuda_graphs: bool = False,
         quantize: str | None = None,
+        max_image_bytes: int = mmedia.MAX_IMAGE_BYTES,
     ) -> None:
         import torch
         import transformers
@@ -368,8 +392,11 @@ class MMDecisionEngine(DecisionEngine):
         self.media_root = media_root
         self.allow_local_paths = allow_local_paths
         self.gpu_preprocess = gpu_preprocess
+        if max_image_bytes <= 0:
+            raise ValueError("max_image_bytes must be positive")
+        self.max_image_bytes = max_image_bytes
         self._want_mass = False
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
         self._loaded: tuple = ([], [], [])
         self._media: list[dict] = []
         self._prep: Prepared | None = None
@@ -399,8 +426,6 @@ class MMDecisionEngine(DecisionEngine):
         if quantize:
             self._quantize(quantize, stored_dir=model_path if stored_fp8 else None)
         self.head_dtype = head_dtype
-        if head_dtype != dtype:
-            self._upcast_head(getattr(torch, head_dtype))
         self.model_type = config.model_type
         self.template_kwargs = {"enable_thinking": False} if "qwen" in self.model_type else {}
         self.slot_ids = self._verify_slots()
@@ -421,7 +446,8 @@ class MMDecisionEngine(DecisionEngine):
                                transformers_version=transformers.__version__, torch_version=torch.__version__,
                                extra={"head_dtype": head_dtype, "multimodal": True})
         if fork_mode == "auto":
-            self._select_fork_mode()
+            with self._device_context():
+                self._select_fork_mode()
         else:
             self.info.fork_mode = fork_mode
         log.info("loaded %s (%s, vision) in %.1fs, fork_mode=%s", model_path, self.model_type,
@@ -437,28 +463,6 @@ class MMDecisionEngine(DecisionEngine):
             raise ValueError(f"unknown quantization {kind!r}")
         n = quantize_linears(self.model, stored_reader(stored_dir) if stored_dir else None)
         log.info("fp8: %d decoder linear layers%s", n, " from the checkpoint" if stored_dir else " quantized on load")
-
-    def _init_slot_head(self) -> None:
-        """The output-head rows of the option-letter slots, in the head dtype. An answer needs only these logits; the
-        full vocabulary is computed only for the debug diagnostics (allowed-token mass)."""
-        import torch
-
-        head = self.model.get_output_embeddings()
-        ids = torch.tensor(self.slot_ids, device=head.weight.device)
-        dt = getattr(torch, self.head_dtype)
-        self._slot_w = head.weight.detach().index_select(0, ids).to(dt)
-        bias = getattr(head, "bias", None)
-        self._slot_b = None if bias is None else bias.detach().index_select(0, ids).to(dt)
-
-    def _readout_rows(self, hidden, n_slots: list[int]) -> list[tuple[list[float], float]]:
-        """Slot logits for each row of `hidden` (rows x hidden size, final-norm output), with one host sync."""
-        if self._want_mass:
-            vocab = self.model.get_output_embeddings()(hidden)
-            return [self._readout(vocab[i], n) for i, n in enumerate(n_slots)]
-        sel = hidden.to(self._slot_w.dtype) @ self._slot_w.T
-        if self._slot_b is not None:
-            sel = sel + self._slot_b
-        return [(row[:n], float("nan")) for row, n in zip(sel.tolist(), n_slots)]
 
     def _embed(self, inputs: dict):
         """Token embeddings with the vision features written into the image and video placeholders, as the model's
@@ -532,7 +536,7 @@ class MMDecisionEngine(DecisionEngine):
         prompts = [self._render_prompt(state, r.suffix) for r in rendered]
         full = [self._encode(p) for p in prompts]
         prefix_text = self._render_prompt(state, MARK)
-        prefix_u = self._encode(prefix_text[:prefix_text.index(MARK)])
+        prefix_u = self._encode(prefix_text[:prefix_text.rindex(MARK)])
         n = len(prefix_u)
         while n > 0 and not all(ids[:n] == prefix_u[:n] for ids in full):
             n -= 1
@@ -700,21 +704,23 @@ class MMDecisionEngine(DecisionEngine):
                 out = self.processor(text=[self._render_prompt(state, r.suffix)], return_tensors="pt",
                                      **self._processor_kwargs())
                 out = {k: v.to(self.device) for k, v in out.items()}
-                o = self.model(**out, use_cache=False, return_dict=True, logits_to_keep=1)
-                out_logits.append(self._readout(o.logits[0, -1], r.n_slots)[0])
+                o = self.model.model(**out, use_cache=False, return_dict=True)
+                (logits, _), = self._readout_rows(o.last_hidden_state[:, -1], [r.n_slots])
+                out_logits.append(logits)
                 del o
         return out_logits
 
     def _set_media(self, items: list[dict]) -> None:
         self._prep = None
-        self._media = items
+        self._media, self._loaded = [], ([], [], [])
         try:
-            self._loaded = mmedia.load(items, self.media_root, self.allow_local_paths) if items else ([], [], [])
+            loaded = mmedia.load(items, self.media_root, self.allow_local_paths,
+                                 max_image_bytes=self.max_image_bytes) if items else ([], [], [])
         except mmedia.MediaError:
             raise
         except Exception as exc:
-            self._media, self._loaded = [], ([], [], [])
             raise mmedia.MediaError(f"could not load media: {type(exc).__name__}: {exc}") from exc
+        self._media, self._loaded = items, loaded
 
     def decide(self, request: SystemOneRequest, debias: int = 1, debug: bool = False,
                media: list | None = None) -> tuple[SystemOneResponse, dict[str, Any]]:

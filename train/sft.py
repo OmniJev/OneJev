@@ -27,6 +27,7 @@ import math
 import os
 import random
 import time
+from collections import deque
 from pathlib import Path
 
 from train import common
@@ -70,8 +71,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--no-gradient-checkpointing", dest="gradient_checkpointing", action="store_false",
                    default=True, help="disable gradient checkpointing")
     p.add_argument("--share-prefix", action="store_true",
-                   help="encode each state once and train its questions as branches off the cache (train/shared.py); "
-                        "rows that share a state form one unit, other rows are batched as usual")
+                   help="pack text questions sharing a state into one sequence (full/sliding attention only); "
+                        "media rows use ordinary batches")
     p.add_argument("--step-rows", type=int, default=24,
                    help="with --share-prefix: accumulate units until a step holds at least this many rows")
     p.add_argument("--accum-rows", type=int, default=0,
@@ -124,10 +125,27 @@ def parse_args(argv=None) -> argparse.Namespace:
         parser.error("--model is required (flag or config)")
     if not args.train_file:
         parser.error("--train is required (flag or config)")
+    for name in ("epochs", "max_len", "batch_tokens", "max_rows", "log_every", "step_rows", "lora_r", "lora_alpha"):
+        value = getattr(args, name)
+        if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
+            parser.error(f"--{name.replace('_', '-')} must be a positive integer")
+    for name in ("limit", "save_every", "max_steps", "accum_rows", "eval_every", "eval_limit", "eval_max_len"):
+        value = getattr(args, name)
+        if value is not None and (not isinstance(value, int) or isinstance(value, bool) or value < 0):
+            parser.error(f"--{name.replace('_', '-')} must be a non-negative integer")
+    for name in ("lr", "brier_weight", "weight_decay", "max_grad_norm", "warmup_frac", "pad_options", "lora_dropout"):
+        value = getattr(args, name)
+        if not isinstance(value, (int, float)) or isinstance(value, bool) or not math.isfinite(value) or value < 0:
+            parser.error(f"--{name.replace('_', '-')} must be a finite non-negative number")
+        if name in ("lr", "max_grad_norm") and value == 0:
+            parser.error(f"--{name.replace('_', '-')} must be positive")
+        if name in ("warmup_frac", "pad_options", "lora_dropout") and value > 1:
+            parser.error(f"--{name.replace('_', '-')} must lie in [0, 1]")
     return args
 
 
-def token_lengths(bundle, rows, args, epoch: int, rank: int = 0, world: int = 1) -> list[int]:
+def token_lengths(bundle, rows, args, epoch: int, rank: int = 0, world: int = 1,
+                  row_indices=None) -> list[int]:
     """Token length of every row as rendered in this epoch. Under data parallel each rank measures
     rows rank, rank + world, ... and the lengths are all-gathered, so no rank tokenizes everything."""
     mine = list(range(rank, len(rows), world))
@@ -135,8 +153,9 @@ def token_lengths(bundle, rows, args, epoch: int, rank: int = 0, world: int = 1)
     for chunk in common.chunked(mine, 256):
         texts = []
         for i in chunk:
-            seed = args.seed * 1000003 + epoch * 1000033 + i
-            texts.append(common.render_example(rows[i], bundle.template_for(rows[i]), i, seed=seed, augment=args.augment,
+            original_i = i if row_indices is None else row_indices[i]
+            seed = args.seed * 1000003 + epoch * 1000033 + original_i
+            texts.append(common.render_example(rows[i], bundle.template_for(rows[i]), original_i, seed=seed, augment=args.augment,
                                                option_pool=OPTION_POOL, pad_prob=args.pad_options).prompt)
         enc = bundle.tokenizer(texts, add_special_tokens=False)["input_ids"]
         if bundle.multimodal:
@@ -156,13 +175,13 @@ def token_lengths(bundle, rows, args, epoch: int, rank: int = 0, world: int = 1)
     return lengths
 
 
-def plan_epoch(bundle, rows, args, epoch: int, rank: int = 0, world: int = 1):
+def plan_epoch(bundle, rows, args, epoch: int, rank: int = 0, world: int = 1, row_indices=None):
     """Render the epoch, measure token lengths, and cut length-sorted batches.
 
     Rendering is a deterministic function of (seed, epoch, row index), so the training loop can
     re-render a batch on the fly instead of holding every tokenized epoch in memory.
     """
-    lengths = token_lengths(bundle, rows, args, epoch, rank, world)
+    lengths = token_lengths(bundle, rows, args, epoch, rank, world, row_indices=row_indices)
     usable = [i for i in range(len(rows)) if lengths[i] <= args.max_len]
     dropped = len(rows) - len(usable)
     sub_lengths = [lengths[i] for i in usable]
@@ -213,7 +232,15 @@ def plan_epoch_shared(bundle, rows, args, epoch: int):
     groups, singles = shared.group_rows(rows)
     units = []
     dropped = 0
-    for idx in groups:
+    pending = deque(groups)
+    while pending:
+        idx = pending.popleft()
+        if len(idx) > args.max_rows:
+            pending.extend(idx[start:start + args.max_rows] for start in range(0, len(idx), args.max_rows))
+            continue
+        if len(idx) < 2:
+            singles.extend(idx)
+            continue
         seed = args.seed * 1000003 + epoch * 1000033 + idx[0]
         state, sufs, _, _, _ = shared.render_group(rows, idx, seed=seed, augment=args.augment)
         try:
@@ -224,13 +251,18 @@ def plan_epoch_shared(bundle, rows, args, epoch: int):
             continue
         keep = [i for i, sfx in zip(idx, suffix_ids) if len(prefix) + len(sfx) <= args.max_len]
         dropped += len(idx) - len(keep)
-        if len(keep) >= 2:
-            units.append(("group", keep))
-        else:
+        if len(keep) != len(idx):
             singles.extend(keep)
+        elif len(prefix) + sum(map(len, suffix_ids)) > args.batch_tokens:
+            # Each resulting unit is rendered again with its own seed, exactly as
+            # the training loop will render it after the split.
+            middle = len(idx) // 2
+            pending.extend((idx[:middle], idx[middle:]))
+        else:
+            units.append(("group", keep))
     if singles:
         sub = [rows[i] for i in singles]
-        batches, d, _ = plan_epoch(bundle, sub, args, epoch)
+        batches, d, _ = plan_epoch(bundle, sub, args, epoch, row_indices=singles)
         dropped += d
         units.extend(("batch", [singles[j] for j in b]) for b in batches)
     random.Random(args.seed + epoch).shuffle(units)
@@ -288,13 +320,16 @@ def plan_only(bundle, rows, args, world: int) -> int:
     """Every row rendered and measured exactly as the run will (padding included), the epoch planned for `world`
     ranks, the worst cases listed. Any row that cannot be rendered raises here instead of in the multi-GPU job."""
     t0 = time.perf_counter()
+    planned_world = int(os.environ.get("PLAN_WORLD", world))
+    if planned_world < 1:
+        raise ValueError("PLAN_WORLD must be positive")
     batches, dropped, lengths = plan_epoch(bundle, rows, args, 0, 0, 1)
-    steps = plan_steps(batches, lengths, int(os.environ.get("PLAN_WORLD", "4")), args.accum_rows)
+    steps = plan_steps(batches, lengths, planned_world, args.accum_rows)
     s = sorted(lengths)
     q = lambda f: s[min(len(s) - 1, int(f * len(s)))]
     print(f"plan-only: {len(rows)} rows rendered in {time.perf_counter() - t0:.0f}s; tokens p50 {q(.5)} p90 {q(.9)} "
           f"p99 {q(.99)} max {s[-1]}; {dropped} rows over max-len {args.max_len}; {len(batches)} micro-batches, "
-          f"{len(steps)} steps for {os.environ.get('PLAN_WORLD', '4')} ranks; total tokens {sum(lengths):,}", flush=True)
+          f"{len(steps)} steps for {planned_world} ranks; total tokens {sum(lengths):,}", flush=True)
     for w in auto_worst_case(rows, batches, lengths, bundle, args):
         print(f"  worst {w['category']:<14} rows {w['n']:>3} max_len {w['max_len']:>6} padded {w['padded_tokens']:>6} "
               f"options {w['max_options']:>3} media tokens {w['media_tokens']:>6}", flush=True)
@@ -391,7 +426,9 @@ def dist_setup(args) -> tuple[int, int]:
     rank = int(os.environ["RANK"])
     if args.dist_backend == "nccl":
         args.device = f"cuda:{int(os.environ.get('LOCAL_RANK', rank))}"
-    torch.cuda.set_device(torch.device(args.device))
+    device = torch.device(args.device)
+    if device.type == "cuda":
+        torch.cuda.set_device(device)
     dist.init_process_group(args.dist_backend, timeout=datetime.timedelta(minutes=90))
     return rank, world
 
@@ -562,7 +599,6 @@ def main(argv=None) -> int:
         common.block_fla_kernels()
 
     import torch
-    from peft import LoraConfig, get_peft_model
     from transformers import get_cosine_schedule_with_warmup
 
     if world > 1:
@@ -578,6 +614,7 @@ def main(argv=None) -> int:
     if not rows:
         raise SystemExit(f"no rows in {args.train_file}")
     log.info("loaded %d rows from %s (world size %d)", len(rows), args.train_file, world)
+    OPTION_POOL.clear()
     if args.pad_options > 0:
         OPTION_POOL.update(common.build_option_pool(rows))
         log.info("option padding p=%.2f, pool %s", args.pad_options, {k: len(v) for k, v in OPTION_POOL.items()})
@@ -608,6 +645,8 @@ def main(argv=None) -> int:
         log.info("full fine-tuning: fp32 master weights, bf16 autocast forward, vision tower %s",
                  "trained" if args.train_vision else "frozen")
     else:
+        from peft import LoraConfig, get_peft_model
+
         targets_arg = ([m.strip() for m in args.target_modules.split(",")] if args.target_modules
                        else common.linear_projection_modules(bundle.model))
         log.info("LoRA target modules: %d modules, kinds %s", len(targets_arg), common.short_names(targets_arg))
@@ -686,10 +725,12 @@ def main(argv=None) -> int:
         log.info("worst-case mode: %d single micro-batch steps from %s (lengths match the preflight)", len(steps0),
                  args.worst_case)
     steps_per_epoch = len(steps0)
+    if not steps_per_epoch:
+        raise SystemExit("no training rows remain under --max-len; increase the limit or check the dataset")
     total_steps = steps_per_epoch * args.epochs
     if args.max_steps:
         total_steps = min(total_steps, args.max_steps)
-    warmup = max(1, int(round(args.warmup_frac * total_steps)))
+    warmup = int(round(args.warmup_frac * total_steps))
     log.info("%d steps per epoch, %d total steps, %d warmup, %d rows dropped over max-len, planned in %.0fs",
              steps_per_epoch, total_steps, warmup, dropped0, time.perf_counter() - t_plan)
 
@@ -802,6 +843,7 @@ def main(argv=None) -> int:
             gnorm = torch.nn.utils.clip_grad_norm_(params, args.max_grad_norm)
             if hasattr(gnorm, "full_tensor"):
                 gnorm = gnorm.full_tensor()
+            step_lr = opt.param_groups[0]["lr"]
             try:
                 opt.step()
             except torch.OutOfMemoryError:
@@ -837,11 +879,11 @@ def main(argv=None) -> int:
                     "loss": window["loss"] / n, "ce": window["ce"] / n,
                     "brier": window["brier"] / n, "slot_acc": window["acc"] / n,
                     "grad_norm": window["gnorm"] / n,
-                    "lr": sched.get_last_lr()[0], "rows_per_step": window["rows"] / n,
+                    "lr": step_lr, "rows_per_step": window["rows"] / n,
                     "examples_per_s": window["rows"] / max(dt, 1e-9),
                     "tokens_per_s": window["tokens"] / max(dt, 1e-9),
                     "sec_per_step": dt / n,
-                    "peak_mem_gb": torch.cuda.max_memory_allocated(device) / 2**30,
+                    "peak_mem_gb": torch.cuda.max_memory_allocated(device) / 2**30 if device.type == "cuda" else 0.0,
                     "elapsed_s": time.perf_counter() - t_start,
                 }
                 if is_main:

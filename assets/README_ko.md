@@ -108,7 +108,7 @@ cp docker/.env.example docker/.env   # gated/비공개 저장소는 HF_TOKEN 설
 서버 주소는 `http://localhost:8000`입니다. 다른 터미널에서 직접 준비한 `screenshot.png`로 이 예제를 실행하세요.
 
 ```bash
-IMG=$(base64 -w0 screenshot.png)
+IMG=$(base64 < screenshot.png | tr -d '\r\n')
 curl http://localhost:8000/v1/systemone -H "Content-Type: application/json" -d @- <<EOF
 {
   "state": {"task": "Pay the open invoice from ACME", "screen": "<image:1>"},

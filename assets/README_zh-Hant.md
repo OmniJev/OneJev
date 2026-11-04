@@ -108,7 +108,7 @@ cp docker/.env.example docker/.env   # 受限/私有儲存庫請設定 HF_TOKEN
 服務位址是 `http://localhost:8000`。在另一個終端機中，用你自己的 `screenshot.png` 執行範例：
 
 ```bash
-IMG=$(base64 -w0 screenshot.png)
+IMG=$(base64 < screenshot.png | tr -d '\r\n')
 curl http://localhost:8000/v1/systemone -H "Content-Type: application/json" -d @- <<EOF
 {
   "state": {"任務": "支付 ACME 的待付款發票", "螢幕": "<image:1>"},

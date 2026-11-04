@@ -19,6 +19,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+dev = [
+  "pytest>=8,<9; python_version < '3.11'",
+  "pytest>=8; python_version >= '3.11'",
+  "httpx>=0.27", "pyyaml>=6", "pyarrow>=14",
+]
 torch = ["torch>=2.6", "torchvision>=0.21", "accelerate>=1.0", "safetensors>=0.4"]
 train = ["torch>=2.6", "torchvision>=0.21", "accelerate>=1.0", "safetensors>=0.4", "peft>=0.13", "pyyaml>=6", "pyarrow>=14"]
 
@@ -30,3 +35,10 @@ include = ["qev*"]
 
 [tool.setuptools.package-data]
 qev = ["playground/*.html"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+  "gpu: optional integration tests using a local checkpoint and CUDA",
+  "browser: optional Playwright browser integration tests",
+]

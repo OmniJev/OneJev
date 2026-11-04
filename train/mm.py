@@ -90,6 +90,8 @@ class TokenCounter:
         self.factor = ip.patch_size * ip.merge_size
         self.min_pixels = ip.size["shortest_edge"]
         self.max_pixels = ip.size["longest_edge"]
+        # Each processor owns its cache; the cache must not keep old bundles alive.
+        self.video_extra = functools.lru_cache(maxsize=4096)(self.video_extra)
 
     def image_tokens(self, h: int, w: int) -> int:
         from transformers.models.qwen2_vl.image_processing_qwen2_vl import smart_resize
@@ -97,7 +99,6 @@ class TokenCounter:
         hh, ww = smart_resize(h, w, factor=self.factor, min_pixels=self.min_pixels, max_pixels=self.max_pixels)
         return (hh // self.factor) * (ww // self.factor)
 
-    @functools.lru_cache(maxsize=4096)
     def video_extra(self, n: int, h: int, w: int, fps: float) -> int:
         """Tokens a video block adds beyond its single pad token, probed on blank frames (cached per shape)."""
         from PIL import Image

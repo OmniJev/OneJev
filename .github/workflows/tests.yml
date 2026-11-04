@@ -1,0 +1,54 @@
+name: Tests
+
+on:
+  push:
+    paths: ["qev/**", "train/**", "tests/**", "benchmarks/**", "docker/**", "pyproject.toml", ".github/workflows/tests.yml"]
+  pull_request:
+    paths: ["qev/**", "train/**", "tests/**", "benchmarks/**", "docker/**", "pyproject.toml", ".github/workflows/tests.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: python -m pip install -e ".[dev]"
+      - run: python -m pytest -q
+      - run: python -m pip wheel --no-deps . --wheel-dir dist
+
+  training:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install -e ".[dev]"
+      - run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - run: python -m pip install peft
+      - run: python -m pytest -q tests/test_training.py tests/test_training_media.py tests/test_train_smoke.py tests/test_shared_prefix.py tests/test_fp8.py tests/test_readout.py
+
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install -e ".[dev]" playwright
+      - run: python -m playwright install --with-deps --only-shell chromium
+      - run: python -m pytest -q tests/test_playground.py
+        env:
+          QEV_TEST_BROWSER: "1"

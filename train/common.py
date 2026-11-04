@@ -22,7 +22,11 @@ KINDS = ("noul", "choice", "score")
 
 
 def load_rows(path: str | Path, limit: int | None = None, split: str | None = None) -> list[dict]:
-    """Read the unified JSONL example format of DESIGN.md 4.1."""
+    """Read unified JSONL examples, optionally filtering the split and limiting the row count."""
+    if limit is not None and limit < 0:
+        raise ValueError("limit must be non-negative or None")
+    if limit == 0:
+        return []
     rows: list[dict] = []
     with open(path, "r", encoding="utf-8") as fh:
         for line in fh:
@@ -54,6 +58,8 @@ def target_vector(target: dict[str, float], labels: Sequence[str]) -> list[float
     """Target probabilities in slot order. Labels come from the rendered question, so a permuted
     rendering permutes the target for free."""
     vec = [float(target.get(lbl, 0.0)) for lbl in labels]
+    if any(not math.isfinite(v) or v < 0 for v in vec):
+        raise ValueError("target probabilities must be finite and non-negative")
     total = sum(vec)
     if total <= 0:
         raise ValueError(f"target {target} has no mass on the rendered labels {list(labels)}")
@@ -141,6 +147,8 @@ def pad_options(row: dict, pool: dict, prob: float, seed: int, char_budget: int 
         return q
     crit = dict(q["criteria"])
     k0 = len(crit)
+    if k0 >= PAD_MAX_OPTIONS:
+        return q
     target_k = rng.randint(max(k0 + 1, 27), PAD_MAX_OPTIONS)
     budget = char_budget
     for _ in range(4 * target_k):
@@ -478,17 +486,27 @@ def load_yaml_config(path: str | Path) -> dict:
     import yaml
 
     with open(path, "r", encoding="utf-8") as fh:
-        data = yaml.safe_load(fh) or {}
+        data = yaml.safe_load(fh)
+    if data is None:
+        data = {}
+    if not isinstance(data, dict):
+        raise ValueError(f"{path}: configuration must be a mapping of option names to values")
     out = {}
     for k, v in data.items():
         key = str(k).replace("-", "_")
-        out[CONFIG_ALIASES.get(key, key)] = v
+        key = CONFIG_ALIASES.get(key, key)
+        if key in out:
+            raise ValueError(f"{path}: duplicate configuration option {key!r}")
+        out[key] = v
     return out
 
 
 def apply_config(parser, path: str | Path) -> None:
     """Load a YAML config as argparse defaults. Unknown keys are an error, not a silent no-op."""
-    cfg = load_yaml_config(path)
+    try:
+        cfg = load_yaml_config(path)
+    except ValueError as exc:
+        parser.error(str(exc))
     known = {a.dest for a in parser._actions}
     unknown = sorted(set(cfg) - known)
     if unknown:

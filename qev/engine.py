@@ -15,7 +15,9 @@ from __future__ import annotations
 import copy
 import hashlib
 import logging
+import threading
 import time
+from contextlib import nullcontext
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -31,6 +33,7 @@ log = logging.getLogger("qev.engine")
 
 NONE_OPTION = "none of the options listed here"
 NONE_DESCRIPTION = "The correct option is not among the options listed in this question."
+HEAD_CHUNK_BYTES = 64 << 20
 GRAPH_SIZES = (64, 96, 128, 160, 192, 224, 256, 320, 384, 448, 512, 640, 768, 896, 1024, 1280, 1536, 1792, 2048,
                2560, 3072, 3584, 4096)
 
@@ -88,6 +91,7 @@ class DecisionEngine:
         self.fork_token_budget = fork_token_budget
         self.fork_tolerance = fork_tolerance
         self.style = style
+        self._lock = threading.RLock()
 
         t0 = time.perf_counter()
         local = Path(model_path).exists()
@@ -114,7 +118,8 @@ class DecisionEngine:
 
             self._graphs = DecoderGraphs(self.model.model, sizes=GRAPH_SIZES)
             try:
-                self._graphs.capture_all(self.model.config.hidden_size, self.torch_dtype, self.device)
+                with self._device_context():
+                    self._graphs.capture_all(self.model.config.hidden_size, self.torch_dtype, self.device)
             except (RuntimeError, torch.OutOfMemoryError) as exc:
                 log.warning("CUDA graphs off after %s: %s", type(exc).__name__, exc)
                 self._graphs = None
@@ -124,7 +129,8 @@ class DecisionEngine:
                                transformers_version=transformers.__version__, torch_version=torch.__version__,
                                extra={"head_dtype": head_dtype, "cuda_graphs": self._graphs is not None})
         if fork_mode == "auto":
-            self._select_fork_mode()
+            with self._device_context():
+                self._select_fork_mode()
         else:
             self.info.fork_mode = fork_mode
         log.info("loaded %s (%s) in %.1fs, fork_mode=%s", model_path, self.model_type, time.perf_counter() - t0, self.info.fork_mode)
@@ -159,13 +165,26 @@ class DecisionEngine:
 
     def _readout_rows(self, hidden, n_slots: list[int]) -> list[tuple[list[float], float]]:
         """Slot logits for each row of `hidden` (rows x hidden size, final-norm output), with one host sync."""
+        import torch
+        from torch.nn import functional as F
+
+        readout = hidden.to(self._slot_w.dtype)
+        sel = F.linear(readout, self._slot_w, self._slot_b)
         if self._want_mass:
             head = self.model.get_output_embeddings()
-            vocab = head(hidden.to(head.weight.dtype))
-            return [self._readout(vocab[i], n) for i, n in enumerate(n_slots)]
-        sel = hidden.to(self._slot_w.dtype) @ self._slot_w.T
-        if self._slot_b is not None:
-            sel = sel + self._slot_b
+            weight = head.weight.detach()
+            bias = getattr(head, "bias", None)
+            chunk_rows = max(1, HEAD_CHUNK_BYTES // (weight.shape[1] * readout.element_size()))
+            normalizer = torch.full((hidden.shape[0],), -torch.inf, device=hidden.device, dtype=torch.float32)
+            for start in range(0, weight.shape[0], chunk_rows):
+                b = None if bias is None else bias[start:start + chunk_rows].detach().to(readout.dtype)
+                vocab = F.linear(readout, weight[start:start + chunk_rows].to(readout.dtype), b)
+                normalizer = torch.logaddexp(normalizer, torch.logsumexp(vocab.float(), dim=-1))
+            mask = torch.arange(sel.shape[1], device=sel.device)[None] < torch.tensor(n_slots, device=sel.device)[:, None]
+            allowed = torch.logsumexp(sel.float().masked_fill(~mask, -torch.inf), dim=-1)
+            mass = (allowed - normalizer).exp().clamp(max=1.0)
+            values = torch.cat([sel.float(), mass[:, None]], dim=-1).tolist()
+            return [(row[:n], row[-1]) for row, n in zip(values, n_slots)]
         return [(row[:n], float("nan")) for row, n in zip(sel.tolist(), n_slots)]
 
     def _verify_slots(self) -> list[int]:
@@ -232,9 +251,12 @@ class DecisionEngine:
     def _prefix_and_suffix_ids(self, state: Any, rendered: list[RenderedQuestion]) -> tuple[list[int], list[list[int]]]:
         """Tokenize every branch fully, then find the longest common token prefix that ends at or
         before the end of the state block, so the shared prefix is exact by construction."""
+        prepared = getattr(self, "_prepared_ids", None)
+        if prepared is not None and prepared[0] is state and prepared[1] is rendered:
+            return prepared[2], prepared[3]
         full = [self._encode(self._render_prompt(state, r.suffix)) for r in rendered]
         prefix_text = self._render_prompt(state, "QEV_PREFIX_MARK")
-        cut = prefix_text.index("QEV_PREFIX_MARK")
+        cut = prefix_text.rindex("QEV_PREFIX_MARK")
         prefix_ids = self._encode(prefix_text[:cut])
         n = len(prefix_ids)
         while n > 0 and not all(ids[:n] == prefix_ids[:n] for ids in full):
@@ -404,20 +426,46 @@ class DecisionEngine:
         size = -(-len(names) // n_chunks)
         return [names[i:i + size] for i in range(0, len(names), size)]
 
+    def _prefix_token_count(self, prefix_ids: list[int]) -> int:
+        """Expanded prefix length; backends with separate vision inputs add their image tokens here."""
+        return len(prefix_ids)
+
+    def _device_context(self):
+        device = getattr(self, "device", None)
+        if getattr(device, "type", None) == "cuda":
+            import torch
+
+            return torch.cuda.device(device)
+        return nullcontext()
+
     def decide(self, request: SystemOneRequest, debias: int = 1, debug: bool = False) -> tuple[SystemOneResponse, dict[str, Any]]:
         """Answer a request. `debias > 1` averages probabilities over that many cyclic shifts of
         the option order (all sharing the same prefix)."""
+        with self._lock, self._device_context():
+            self._prepared_ids = None
+            self._want_mass = debug
+            try:
+                return self._decide(request, debias, debug)
+            finally:
+                self._prepared_ids = None
+                self._want_mass = False
+
+    def _decide(self, request: SystemOneRequest, debias: int, debug: bool) -> tuple[SystemOneResponse, dict[str, Any]]:
         t0 = time.perf_counter()
-        self._want_mass = debug
         rendered: list[RenderedQuestion] = []
         owners: list[tuple[str, list[int], int | None]] = []
         chunk_plans: dict[str, list[list[str]]] = {}
+        none_labels: dict[str, str] = {}
         for qid, q in request.questions.items():
             if isinstance(q, ChoiceQuestion) and len(q.criteria) > self.max_slots:
                 chunk_plans[qid] = self._plan_chunks(q)
+                none = NONE_OPTION
+                while none in q.criteria:
+                    none += " (chunk fallback)"
+                none_labels[qid] = none
                 for ci, names in enumerate(chunk_plans[qid]):
                     sub = ChoiceQuestion(type="choice", instructions=q.instructions,
-                                         criteria={**{n: q.criteria[n] for n in names}, NONE_OPTION: NONE_DESCRIPTION})
+                                         criteria={**{n: q.criteria[n] for n in names}, none: NONE_DESCRIPTION})
                     rendered.append(render_question(qid, sub, style=self.style))
                     owners.append((qid, list(range(len(names) + 1)), ci))
                 continue
@@ -430,24 +478,31 @@ class DecisionEngine:
                 owners.append((qid, order, None))
 
         prefix_ids, suffixes = self._prefix_and_suffix_ids(request.state, rendered)
-        longest = len(prefix_ids) + max(len(s) for s in suffixes)
-        total = len(prefix_ids) + sum(len(s) for s in suffixes)
+        prefix_tokens = self._prefix_token_count(prefix_ids)
+        longest = prefix_tokens + max(len(s) for s in suffixes)
+        total = prefix_tokens + sum(len(s) for s in suffixes)
         if longest > self.max_branch_tokens:
             raise ValueError(f"state plus longest question is {longest} tokens, limit is {self.max_branch_tokens}")
         if total > self.max_request_tokens:
             raise ValueError(f"request is {total} tokens, limit is {self.max_request_tokens}")
+        self._prepared_ids = (request.state, rendered, prefix_ids, suffixes)
 
         t1 = time.perf_counter()
-        if self.info.fork_mode == "batched":
+        use_sequential = self.info.fork_mode != "batched"
+        if not use_sequential:
             try:
                 branches = self._run_batched(request.state, rendered)
             except Exception as exc:
                 if type(exc).__name__ != "OutOfMemoryError":
                     raise
                 log.warning("batched path out of memory for %d branches over %d prefix tokens; running sequentially", len(rendered), len(prefix_ids))
-                branches = self._run_sequential(request.state, rendered)
-        else:
+                use_sequential = True
+        if use_sequential:
+            # Leave the exception handler first: its traceback otherwise keeps
+            # failed-forward tensors alive while the fallback allocates more.
             branches = self._run_sequential(request.state, rendered)
+        if len(branches) != len(rendered) or any(branch is None for branch in branches):
+            raise RuntimeError(f"inference returned incomplete branches: expected {len(rendered)}, got {len(branches)}")
         t2 = time.perf_counter()
 
         acc: dict[str, dict[str, Any]] = {}
@@ -457,10 +512,11 @@ class DecisionEngine:
             probs = softmax(br.logits, temp)
             if ci is not None:
                 c = chunked.setdefault(qid, {"scores": {}, "weights": [], "mass": 0.0, "n": 0, "logits": []})
-                none_p = probs[br.labels.index(NONE_OPTION)]
+                none = none_labels[qid]
+                none_p = probs[br.labels.index(none)]
                 keep = max(1.0 - none_p, 1e-9)
                 for lab, p in zip(br.labels, probs):
-                    if lab != NONE_OPTION:
+                    if lab != none:
                         c["scores"][lab] = (p / keep, keep)
                 c["weights"].append(keep)
                 c["mass"] += br.allowed_mass
@@ -508,7 +564,7 @@ class DecisionEngine:
             "prompt_version": self.style.name,
             "prompt_sha256": hashlib.sha256(self._render_prompt(request.state, rendered[0].suffix).encode()).hexdigest(),
             "fork_mode": self.info.fork_mode,
-            "prefix_tokens": len(prefix_ids),
+            "prefix_tokens": prefix_tokens,
             "branches": len(rendered),
             "timing": {"render_s": t1 - t0, "forward_s": t2 - t1, "total_s": time.perf_counter() - t0},
         }

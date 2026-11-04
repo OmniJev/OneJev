@@ -12,6 +12,7 @@ import os
 import urllib.request
 from dataclasses import dataclass, field
 from typing import Any
+from urllib.parse import urlencode
 
 
 @dataclass
@@ -102,11 +103,13 @@ class Client:
         qs = {k: (v.to_dict() if hasattr(v, "to_dict") else v) for k, v in questions.items()}
         path = "/v1/systemone"
         if params:
-            path += "?" + "&".join(f"{k}={v}" for k, v in params.items())
+            query = {k: str(v).lower() if isinstance(v, bool) else v for k, v in params.items()}
+            path += "?" + urlencode(query, doseq=True)
         body = {"state": state, "model": model or self.model, "questions": qs}
         if media is not None:
             body["media"] = media
         data, headers = self._post(path, body)
+        headers = {k.lower(): v for k, v in headers.items()}
         return Response(model=data["model"], answers={k: _Answer(v) for k, v in data["answers"].items()},
                         usage=data.get("usage", {}), request_id=headers.get("x-typesafe-request-id"), meta=data.get("qev", {}))
 

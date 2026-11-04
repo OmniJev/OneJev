@@ -27,7 +27,7 @@ def split_prefix(bundle, state: Any, suffix_texts: Sequence[str]) -> tuple[list[
     the end of the state block (same rule as `DecisionEngine._prefix_and_suffix_ids`)."""
     full = [bundle.encode(bundle.render_prompt(state, s)) for s in suffix_texts]
     marked = bundle.render_prompt(state, "QEV_PREFIX_MARK")
-    prefix_ids = bundle.encode(marked[: marked.index("QEV_PREFIX_MARK")])
+    prefix_ids = bundle.encode(marked[: marked.rindex("QEV_PREFIX_MARK")])
     n = len(prefix_ids)
     while n > 0 and not all(ids[:n] == prefix_ids[:n] for ids in full):
         n -= 1
@@ -47,6 +47,9 @@ def branch_masks(P: int, suffix_lengths: Sequence[int], layer_types: Sequence[st
     """Position ids and the per-layer-type boolean masks [1, 1, T, T] for the packed sequence."""
     import torch
 
+    unsupported = set(layer_types) - {"full_attention", "sliding_attention"}
+    if unsupported:
+        raise ValueError(f"packed prefix sharing cannot isolate branches for {sorted(unsupported)}; use ordinary batching")
     T = P + sum(suffix_lengths)
     pos = torch.empty(T, dtype=torch.long, device=device)
     seg = torch.empty(T, dtype=torch.long, device=device)
@@ -104,12 +107,15 @@ def state_key(row: dict) -> str:
 
 
 def group_rows(rows: Sequence[dict], min_rows: int = 2) -> tuple[list[list[int]], list[int]]:
-    """Indices of rows grouped by identical state (groups with at least `min_rows` rows), plus the
-    indices left over for ordinary batching."""
+    """Text rows grouped by identical state, plus indices for ordinary batching. Media rows
+    use the processor and remain in ordinary batches so their vision inputs are preserved."""
     by_state: dict[str, list[int]] = {}
-    for i, row in enumerate(rows):
-        by_state.setdefault(state_key(row), []).append(i)
     groups, singles = [], []
+    for i, row in enumerate(rows):
+        if row.get("media"):
+            singles.append(i)
+            continue
+        by_state.setdefault(state_key(row), []).append(i)
     for idx in by_state.values():
         if len(idx) >= min_rows:
             groups.append(idx)

@@ -7,6 +7,7 @@ PyTorch engine. Images are resized here the way the model's processor resizes th
 from __future__ import annotations
 
 import base64
+import collections
 import io
 import json
 import logging
@@ -60,6 +61,8 @@ def tokenizer_repo(gguf: str) -> str | None:
 def resolve_gguf(spec: str, default_quant: str = "Q8_0") -> tuple[str, str | None]:
     """A local .gguf path, or `repo[:quant]` on the Hub, as local paths of the model and its vision projector."""
     if Path(spec).exists():
+        if not Path(spec).is_file():
+            raise ValueError(f"GGUF model must be a file: {spec}")
         found = sorted(Path(spec).parent.glob("*mmproj*.gguf"))
         mmproj = next((p for p in found if "f16" in p.name.lower()), found[0] if found else None)
         return spec, str(mmproj) if mmproj else None
@@ -88,6 +91,8 @@ class LlamaServer:
 
     def __init__(self, gguf: str, binary: str = "llama-server", mmproj: str | None = None, ctx: int = 32768,
                  parallel: int = 1, extra: list[str] | None = None) -> None:
+        if ctx <= 0 or parallel <= 0:
+            raise ValueError("llama-server context and parallel slots must be positive")
         exe = shutil.which(binary) or (binary if Path(binary).exists() else None)
         if exe is None:
             raise FileNotFoundError(f"{binary} not found; install llama.cpp (macOS: brew install llama.cpp) or pass "
@@ -102,25 +107,30 @@ class LlamaServer:
             cmd += ["--mmproj", mmproj or found]
         cmd += list(extra or [])
         log.info("starting %s", " ".join(cmd))
-        self.proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
-        self._tail: list[str] = []
+        self.proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True,
+                                     encoding="utf-8", errors="replace")
+        self._tail: collections.deque[str] = collections.deque(maxlen=40)
         threading.Thread(target=self._drain, daemon=True).start()
-        self._wait()
+        try:
+            self._wait()
+        except BaseException:
+            self.stop()
+            raise
 
     def _drain(self) -> None:
         for line in self.proc.stderr:
-            self._tail = (self._tail + [line.rstrip()])[-40:]
+            self._tail.append(line.rstrip())
 
     def _wait(self, timeout: float = 3600) -> None:
-        t0 = time.time()
-        while time.time() - t0 < timeout:
+        t0 = time.monotonic()
+        while time.monotonic() - t0 < timeout:
             if self.proc.poll() is not None:
                 raise RuntimeError("llama-server exited:\n" + "\n".join(self._tail))
             try:
                 with urllib.request.urlopen(self.url + "/health", timeout=2) as r:
                     if r.status == 200:
                         return
-            except Exception:
+            except OSError:
                 pass
             time.sleep(1)
         raise TimeoutError("llama-server did not become ready")
@@ -132,16 +142,21 @@ class LlamaServer:
                 self.proc.wait(10)
             except subprocess.TimeoutExpired:
                 self.proc.kill()
+                self.proc.wait()
 
 
 class LlamaCppEngine(DecisionEngine):
     def __init__(self, url: str, tokenizer: str, calibration: Calibration | None = None, name: str = "gguf",
                  max_branch_tokens: int = 32768, max_request_tokens: int = 65536, style: PromptStyle = DEFAULT_STYLE,
-                 timeout: float = 900, image_config: dict | None = None) -> None:
+                 timeout: float = 900, image_config: dict | None = None,
+                 max_image_bytes: int = mmedia.MAX_IMAGE_BYTES) -> None:
         import transformers
 
         self.url = url.rstrip("/")
         self.timeout = timeout
+        if max_image_bytes <= 0:
+            raise ValueError("max_image_bytes must be positive")
+        self.max_image_bytes = max_image_bytes
         self.calibration = calibration or Calibration()
         self.max_branch_tokens = max_branch_tokens
         self.max_request_tokens = max_request_tokens
@@ -158,7 +173,8 @@ class LlamaCppEngine(DecisionEngine):
         self.max_pixels = int(size.get("longest_edge", 16777216))
         self._media: list[dict] = []
         self._images: list[str] = []
-        self._lock = threading.Lock()
+        self._vision_token_extra = 0
+        self._lock = threading.RLock()
         props = self._get("/props")
         self.vision = bool((props.get("modalities") or {}).get("vision"))
         self.media_marker = props.get("media_marker") or "<__media__>"
@@ -196,6 +212,9 @@ class LlamaCppEngine(DecisionEngine):
                                     self._media)
 
     def _png(self, image) -> str:
+        return self._prepare_image(image)[0]
+
+    def _prepare_image(self, image) -> tuple[str, int]:
         h, w = smart_resize(image.height, image.width, self.factor, self.min_pixels, self.max_pixels)
         if (w, h) != image.size:
             from PIL import Image
@@ -203,20 +222,26 @@ class LlamaCppEngine(DecisionEngine):
             image = image.resize((w, h), Image.BICUBIC)
         buf = io.BytesIO()
         image.save(buf, format="PNG")
-        return base64.b64encode(buf.getvalue()).decode()
+        return base64.b64encode(buf.getvalue()).decode(), (h // self.factor) * (w // self.factor)
 
     def _set_media(self, items: list[dict], root: str | None = None, allow_paths: bool = False) -> None:
+        self._media, self._images, self._vision_token_extra = [], [], 0
         if any(m["type"] == "video" for m in items):
             raise mmedia.MediaError("video is not supported by the llama.cpp backend; use the PyTorch server")
         if items and not self.vision:
             raise mmedia.MediaError("this llama-server has no vision projector (start it with --mmproj)")
         try:
-            self._images = [self._png(mmedia.open_image(m, root, allow_paths)) for m in items]
+            prepared = [self._prepare_image(mmedia.open_image(m, root, allow_paths, max_bytes=self.max_image_bytes)) for m in items]
         except mmedia.MediaError:
             raise
         except Exception as exc:
             raise mmedia.MediaError(f"could not load media: {type(exc).__name__}: {exc}") from exc
+        self._images = [encoded for encoded, _ in prepared]
+        self._vision_token_extra = sum(tokens - 1 for _, tokens in prepared)
         self._media = items
+
+    def _prefix_token_count(self, prefix_ids: list[int]) -> int:
+        return len(prefix_ids) + self._vision_token_extra
 
     def _prompts(self, state: Any, rendered: list[RenderedQuestion]) -> tuple[Any, list[Any]]:
         """The shared state prefix and one full prompt per branch."""
@@ -224,7 +249,7 @@ class LlamaCppEngine(DecisionEngine):
             prefix_ids, suffixes = self._prefix_and_suffix_ids(state, rendered)
             return prefix_ids, [prefix_ids + s for s in suffixes]
         text = VISION_BLOCK.sub(self.media_marker, self._render_prompt(state, "QEV_PREFIX_MARK"))
-        head, tail = text.split("QEV_PREFIX_MARK")
+        head, tail = text.rsplit("QEV_PREFIX_MARK", 1)
         return ({"prompt_string": head, "multimodal_data": self._images},
                 [{"prompt_string": head + r.suffix + tail, "multimodal_data": self._images} for r in rendered])
 
@@ -232,8 +257,20 @@ class LlamaCppEngine(DecisionEngine):
         body = {"prompt": prompts, "n_predict": 1, "cache_prompt": True, "temperature": 0.0, **extra}
         out = self._post("/completion", body)
         out = out if isinstance(out, list) else [out]
-        out = sorted(out, key=lambda r: r.get("index", 0))
-        return [r["completion_probabilities"][0] for r in out]
+        if len(out) != len(prompts) or any(not isinstance(r, dict) for r in out):
+            raise RuntimeError(f"llama-server returned {len(out)} completions for {len(prompts)} prompts")
+        if any("index" in r for r in out):
+            indices = [r.get("index") for r in out]
+            if any(type(i) is not int for i in indices) or sorted(indices) != list(range(len(prompts))):
+                raise RuntimeError("llama-server returned invalid completion indices")
+            out = sorted(out, key=lambda r: r["index"])
+        try:
+            probabilities = [r["completion_probabilities"][0] for r in out]
+        except (KeyError, IndexError, TypeError):
+            raise RuntimeError("llama-server did not return completion probabilities") from None
+        if any(not isinstance(p, dict) for p in probabilities):
+            raise RuntimeError("llama-server returned invalid completion probabilities")
+        return probabilities
 
     def _prefill(self, prefix: Any) -> dict:
         """Compute the shared state alone, so its slot keeps a checkpoint at the end of the state; every branch then
@@ -244,7 +281,7 @@ class LlamaCppEngine(DecisionEngine):
 
     def _run_sequential(self, state: Any, rendered: list[RenderedQuestion]) -> list[BranchResult]:
         prefix, prompts = self._prompts(state, rendered)
-        pin = self._prefill(prefix)
+        pin = self._prefill(prefix) if len(prompts) > 1 else {}
         n_top = max(64, 2 * max(r.n_slots for r in rendered))
         tops = self._complete(prompts, {"n_probs": n_top, **pin})
         results: list[BranchResult | None] = [None] * len(rendered)
@@ -284,7 +321,7 @@ class LlamaCppEngine(DecisionEngine):
             try:
                 response, meta = super().decide(request, debias=debias, debug=debug)
             finally:
-                self._media, self._images = [], []
+                self._media, self._images, self._vision_token_extra = [], [], 0
         meta["media"] = {"images": len(items), "videos": 0, "load_s": t_media}
         meta["timing"]["total_s"] += t_media
         meta["backend"] = "llama.cpp"

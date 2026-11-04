@@ -3,6 +3,7 @@ __pycache__/
 build/
 dist/
 .venv/
+.pytest_cache/
 .env
 data/
 runs/

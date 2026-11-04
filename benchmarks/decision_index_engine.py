@@ -42,9 +42,9 @@ class QevEngine(Engine):
         return {"model": "qev", "answers": out["answers"]}, None
 
     def synchronize(self):
-        if self.torch.cuda.is_available():
-            self.torch.cuda.synchronize()
+        if self.engine.device.type == "cuda":
+            self.torch.cuda.synchronize(self.engine.device)
 
     def runtime(self):
         return {"torch": self.torch.__version__, "cuda": self.torch.version.cuda, "load_seconds": round(self.load_seconds, 1),
-                "device": self.torch.cuda.get_device_name(0) if self.torch.cuda.is_available() else "cpu"}
+                "device": self.torch.cuda.get_device_name(self.engine.device) if self.engine.device.type == "cuda" else str(self.engine.device)}

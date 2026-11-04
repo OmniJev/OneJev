@@ -58,31 +58,32 @@
 </main>
 <script>
 const $ = (id) => document.getElementById(id);
+function esc(value) { return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c])); }
 function parseState(s) { s = s.trim(); if (!s) return ""; try { return JSON.parse(s); } catch (e) { return s; } }
 function bars(probs) {
-  return Object.entries(probs).map(([k, v]) => `<div class="bar"><span class="lbl" title="${k}">${k}</span><div class="track"><div class="fill" style="width:${(v*100).toFixed(1)}%"></div></div><span>${v.toFixed(3)}</span></div>`).join("");
+  return Object.entries(probs).map(([k, v]) => `<div class="bar"><span class="lbl" title="${esc(k)}">${esc(k)}</span><div class="track"><div class="fill" style="width:${(v*100).toFixed(1)}%"></div></div><span>${v.toFixed(3)}</span></div>`).join("");
 }
 async function run() {
   const btn = $("run"), out = $("out"), st = $("status");
   let questions;
-  try { questions = JSON.parse($("questions").value); } catch (e) { out.innerHTML = `<div class="err">questions is not valid JSON: ${e.message}</div>`; return; }
+  try { questions = JSON.parse($("questions").value); } catch (e) { out.innerHTML = `<div class="err">questions is not valid JSON: ${esc(e.message)}</div>`; return; }
   btn.disabled = true; st.textContent = "evaluating..."; const t0 = performance.now();
   try {
     const q = $("debias").checked ? "?debias=3" : "";
     const r = await fetch("/v1/systemone" + q, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer local" },
       body: JSON.stringify({ state: parseState($("state").value), model: "jev-latest", questions }) });
     const data = await r.json();
-    if (!r.ok) { out.innerHTML = `<div class="err">${r.status}: ${JSON.stringify(data, null, 2)}</div>`; return; }
+    if (!r.ok) { out.innerHTML = `<div class="err">${r.status}: ${esc(JSON.stringify(data, null, 2))}</div>`; return; }
     let html = "";
     for (const [id, a] of Object.entries(data.answers)) {
-      if (a.type === "noul") html += `<div class="ans"><h3>${id}<span class="kind">noul</span></h3>${bars({ yes: a.noul, no: 1 - a.noul })}</div>`;
-      else if (a.type === "choice") html += `<div class="ans"><h3>${id}<span class="kind">choice: <b>${a.choice}</b>, confidence ${a.confidence.toFixed(3)}</span></h3>${bars(a.probabilities)}</div>`;
-      else html += `<div class="ans"><h3>${id}<span class="kind">score: <b>${a.score.toFixed(3)}</b>, confidence ${a.confidence.toFixed(3)}</span></h3>${bars(Object.fromEntries(Object.entries(a.probabilities).map(([k, v]) => [`${k}: ${typeof a.legend[k] === "string" ? a.legend[k] : JSON.stringify(a.legend[k])}`, v])))}</div>`;
+      if (a.type === "noul") html += `<div class="ans"><h3>${esc(id)}<span class="kind">noul</span></h3>${bars({ yes: a.noul, no: 1 - a.noul })}</div>`;
+      else if (a.type === "choice") html += `<div class="ans"><h3>${esc(id)}<span class="kind">choice: <b>${esc(a.choice)}</b>, confidence ${a.confidence.toFixed(3)}</span></h3>${bars(a.probabilities)}</div>`;
+      else html += `<div class="ans"><h3>${esc(id)}<span class="kind">score: <b>${a.score.toFixed(3)}</b>, confidence ${a.confidence.toFixed(3)}</span></h3>${bars(Object.fromEntries(Object.entries(a.probabilities).map(([k, v]) => [`${k}: ${typeof a.legend[k] === "string" ? a.legend[k] : JSON.stringify(a.legend[k])}`, v])))}</div>`;
     }
     const m = data.qev || {};
-    html += `<div class="meta">model ${data.model}, ${data.usage.input_tokens} input tokens, ${m.branches || "?"} branches, fork ${m.fork_mode || "?"}, forward ${m.timing ? (m.timing.forward_s * 1000).toFixed(0) : "?"} ms, round trip ${(performance.now() - t0).toFixed(0)} ms</div>`;
+    html += `<div class="meta">model ${esc(data.model)}, ${esc(data.usage.input_tokens)} input tokens, ${esc(m.branches || "?")} branches, fork ${esc(m.fork_mode || "?")}, forward ${m.timing ? (m.timing.forward_s * 1000).toFixed(0) : "?"} ms, round trip ${(performance.now() - t0).toFixed(0)} ms</div>`;
     out.innerHTML = html;
-  } catch (e) { out.innerHTML = `<div class="err">${e.message}</div>`; }
+  } catch (e) { out.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
   finally { btn.disabled = false; st.textContent = ""; }
 }
 $("run").addEventListener("click", run);

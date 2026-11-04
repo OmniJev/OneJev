@@ -70,7 +70,7 @@ Accuracy (%). The OneJev test set is our own held-out set; the others are public
 
 ## Quick start
 
-Choose one backend, then run the Python example below.
+Choose one backend, then run the request example below.
 
 ### Option A: Flide
 
@@ -115,7 +115,7 @@ On Windows only `torch` (NVIDIA) and `cpu` are available.
 The server answers at `http://localhost:8000`. In another terminal, run this example with your own `screenshot.png`:
 
 ```bash
-IMG=$(base64 -w0 screenshot.png)
+IMG=$(base64 < screenshot.png | tr -d '\r\n')
 curl http://localhost:8000/v1/systemone -H "Content-Type: application/json" -d @- <<EOF
 {
   "state": {"task": "Pay the open invoice from ACME", "screen": "<image:1>"},
@@ -135,6 +135,11 @@ EOF
 
 The API is compatible with TypeSafe System One. More examples: [video](examples/video.py),
 [curl](examples/curl.sh), [official TypeSafe SDK](examples/official_sdk.py).
+
+For `qev serve`, encoded images and video frames have a default limit of 32 MiB each; change it with
+`--max-image-bytes BYTES`. Video `fps` must be a finite positive number. The PyTorch backend accepts local media
+paths when `--media-root` is set, with paths confined to that directory. Inference requests queue on the shared
+engine while `/health` and `/v1/models` remain available.
 
 ## Training
 
@@ -178,6 +183,40 @@ The final 4B checkpoint is saved to `train/runs/onejev_4b/final`. Start it with:
 ```bash
 flide serve --model train/runs/onejev_4b/final --format onejev --port 8000
 ```
+
+## Development
+
+Install the development dependencies and run the core tests without model downloads or a GPU:
+
+```bash
+pip install -e ".[dev]"
+python -m pytest -q
+```
+
+With PyTorch installed, the suite also checks training logits and gradients on small randomly initialized
+models. Packed training with `--share-prefix` supports full and sliding attention; media rows use ordinary batches.
+
+Run the optional CUDA checks with an existing local OneJev checkpoint:
+
+```bash
+QEV_TEST_MODEL=/path/to/local/OneJev python -m pytest -q tests/test_inference.py tests/test_cuda_graphs.py tests/test_fp8.py
+```
+
+For the playground browser checks:
+
+```bash
+pip install playwright
+python -m playwright install --only-shell chromium
+QEV_TEST_BROWSER=1 python -m pytest -q tests/test_playground.py
+```
+
+Measure request planning with a local tokenizer, optionally comparing a Git revision:
+
+```bash
+python -m benchmarks.request_planning --tokenizer /path/to/local/OneJev --baseline-ref HEAD~1
+```
+
+This benchmark measures rendering, tokenization and answer assembly; it does not load weights or run inference.
 
 ## Friendly Links
 

@@ -4,8 +4,11 @@ package. The per-token scale is clamped away from zero, so an all-zero token (pa
 """
 from __future__ import annotations
 
+import logging
+
 import torch
 
+log = logging.getLogger("qev.fp8")
 FP8 = torch.float8_e4m3fn
 FP8_MAX = torch.finfo(FP8).max
 
@@ -35,7 +38,14 @@ def quantize_tokens(x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
             _compiled = torch.compile(_quantize_tokens, dynamic=True)
         except Exception:
             _compiled = _quantize_tokens
-    return _compiled(x)
+    try:
+        return _compiled(x)
+    except torch._dynamo.exc.BackendCompilerFailed as exc:
+        # torch.compile is lazy: an unavailable compiler usually fails on the
+        # first tensor, after construction of the compiled callable succeeded.
+        log.warning("FP8 activation compilation failed; using eager quantization: %s", exc.inner_exception)
+        _compiled = _quantize_tokens
+        return _compiled(x)
 
 
 class Fp8Linear(torch.nn.Module):
