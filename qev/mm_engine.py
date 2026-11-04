@@ -59,7 +59,6 @@ def _capture_graph(graph, stream=None):
 
     # PyTorch's stream-keyed workspace cache can make independent graphs share
     # scratch memory. Evicting its owning graph then breaks surviving replays.
-    # https://github.com/pytorch/pytorch/issues/193402
     torch.cuda.synchronize()
     torch._C._cuda_clearCublasWorkspaces()
     with torch.cuda.graph(graph, stream=stream):
